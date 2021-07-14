@@ -1,0 +1,104 @@
+<%- include('../templates/h'); %>
+    <%- include('../templates/n'); %>
+        <div class="container-fluid">
+            <h1 class="h3 mb-2 text-gray-800">Broadcast</h1>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">List Data Broadcast</h6>
+                    <div class="dropdown no-arrow">
+                        <form class="form-inline" action="/broadcast/search" method="GET">
+                            <div class="form-group mx-sm-3 mb-2">
+                              <label class="sr-only">Password</label>
+                              <input type="text" class="form-control" placeholder="Nama Broadcast / Kode" name="search" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search"></i> Cari</button>
+                           <a href="/broadcast/add" class="ml-2">
+                                <button type="button" class="btn btn-success mb-2"><i class="fas fa-plus"></i> Add</button>
+                            </a>
+                          </form>
+                        
+                    </div>
+                </div>
+                <div class="card-body">
+                    <%if (messages.info) { %>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <%= messages.info %>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                        <% } %>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTableContact" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kode</th>
+                                        <th>Nama Broadcast</th>
+                                        <th>Pembuat</th>
+                                        <th>Tgl Kirim</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% var number=1; %>
+                                        <% products.forEach(function(row) { %>
+                                            <tr>
+                                                <td>
+                                                    <%= number %>
+                                                </td>
+                                                <td>
+                                                    <%= row.kode %>
+                                                </td>
+                                                <td>
+                                                    <%= row.nama %>
+                                                </td>
+                                                <td>
+                                                    <%= row.namauser %>
+                                                </td>
+                                                <td>
+                                                    <% 
+                                                    var date = row.tgl_kirim;
+                                                    var dateString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 )).toISOString().split("T")[0];
+                                                    %>
+                                                    <%= dateString %>
+                                                </td>
+                                                <td>
+                                                    <%= row.status %>
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="/broadcast/show/<%= row.kode %>"
+                                                        class="btn btn-sm btn-info"><i
+                                                            class="fa fa-eye"></i></a>
+                                                    <a href="/broadcast/edit/<%= row.kode %>"
+                                                        class="btn btn-sm btn-success"><i
+                                                            class="fa fa-wrench"></i></a>
+                                                    <a href="/broadcast/<%= row.kode %>/hapus"
+                                                        onclick="return confirm('Hapus Data ?')"
+                                                        class="btn btn-sm btn-danger"><i
+                                                            class="fa fa-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                            <% number++; %>
+                                                <% }); %>
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+                                    <li class="page-item"><a class="page-link" href="/broadcast?page=1">First</a></li>
+                                    <% for(var i=0; i < products_page_count+1; i++) { %>
+                                        <li class="page-item"><a class="page-link" href="/broadcast?page=<%= i+1 %>">
+                                                <%= i+1 %>
+                                            </a></li>
+                                        <% } %>
+                                            <li class="page-item"><a class="page-link"
+                                                    href="/broadcast?page=<%= products_page_count+1 %>">Last</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                </div>
+            </div>
+
+        </div>
+        <%- include('../templates/f'); %>

@@ -1,0 +1,54 @@
+<%- include('../templates/h'); %>
+    <%- include('../templates/n'); %>
+        <div class="container-fluid">
+            <h1 class="h3 mb-2 text-gray-800">Contact</h1>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Edit Data Contact</h6>
+                </div>
+                <% datacontact.forEach(function(row) { %>
+                    <form method="POST" action="/contact/update">
+                        <div class="card-body">
+                            <%if (messages.info) { %>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <%= messages.info %>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                </div>
+                                <% } %>
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Cari Data Pasien</label>
+                                        <select class="select2 form-control" id="cari_pasien"></select>
+                                    </div>
+                                    <hr>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Nama</label>
+                                        <input type="text" class="form-control" name="nama" id="nama" value="<%= row.nama %>" required>
+                                        <input type="hidden" name="kode" value="<%= row.id %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">No. Rkm Medis</label>
+                                        <input type="text" class="form-control" name="norm" id="norm" value="<%= row.no_rm %>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">No. Telp</label>
+                                        <input type="number" class="form-control" name="telp" id="telp" value="<%= row.telp %>" required>
+                                        <small id="emailHelp" class="form-text text-muted">Contoh menginputkan nomor
+                                            "<b>081220370910</b>".</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Deksirpsi</label>
+                                        <textarea name="deskripsi" class="form-control" rows="5"><%= row.deskripsi %></textarea>
+                                    </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="button" onclick="history.go(-1)"
+                                class="btn btn-danger float-right">Kembali</button>
+                        </div>
+                    </form>
+                    <% }); %>
+            </div>
+        </div>
+        <%- include('../templates/f'); %>

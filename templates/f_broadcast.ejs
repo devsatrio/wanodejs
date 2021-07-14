@@ -1,0 +1,227 @@
+</div>
+</div>
+</div>
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="/logout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script src="/static/vendor/jquery/jquery.min.js"></script>
+<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="/static/js/sb-admin-2.min.js"></script>
+<script src="/static/vendor/select2/select2.min.js"></script>
+<script src="/static/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+<script>
+    var jumlahpenerima=0;
+    $(document).ready(function () {
+        $('#tgl_broadcast').datepicker({
+            format: 'yyyy-mm-dd',
+        });
+        
+        //------------------------------------------------------------------------------------
+        getpenerima($("#kode_broadcast").val());
+        getpenerimadua($("#kode_broadcast").val());
+        //------------------------------------------------------------------------------------
+        $("#kirimsekarang").click(function (e) {
+            if($('#nama_broadcast').val()=='' || $('#tgl_broadcast').val()=='' || $('#isi_broadcast').val()==''){
+                alert('Data tidak boleh kosong');
+            }else{
+                $.ajax({
+                    type: 'POST',
+                    url: '/broadcast/kirim',
+                    data: {
+                        'kode': $("#kode_broadcast").val(),
+                        'nama': $("#nama_broadcast").val(),
+                        'tgl': $("#tgl_broadcast").val(),
+                        'aksi':$("#aksi option:selected").val(),
+                        'deskripsi': $("#isi_broadcast").val(),
+                    },
+                    success: function () {
+                        location.replace("/broadcast");
+                    }, complete: function () {
+                        location.replace("/broadcast");
+                     }
+                });
+            }
+        });
+
+        //------------------------------------------------------------------------------------
+        $("#updatebtn").click(function (e) {
+            if($('#nama_broadcast').val()=='' || $('#tgl_broadcast').val()=='' || $('#isi_broadcast').val()==''){
+                alert('Data tidak boleh kosong');
+            }else{
+                $.ajax({
+                    type: 'POST',
+                    url: '/broadcast/update',
+                    data: {
+                        'kode': $("#kode_broadcast").val(),
+                        'nama': $("#nama_broadcast").val(),
+                        'tgl': $("#tgl_broadcast").val(),
+                        'aksi':$("#aksi option:selected").val(),
+                        'deskripsi': $("#isi_broadcast").val(),
+                    },
+                    success: function () {
+                        location.replace("/broadcast");
+                    }, complete: function () {
+                        location.replace("/broadcast");
+                     }
+                });
+            }
+        });
+
+        //------------------------------------------------------------------------------------
+        $("#tambah_penerima").click(function (e) {
+            if(jumlahpenerima>=20){
+                alert('maksimal '+jumlahpenerima+' Penerima');
+            }else{
+                if($("#nama").val()==''){
+                    alert('Pilih kontak terlebih dahulu');
+                }else{
+                    $.ajax({
+                    type: 'POST',
+                    url: '/broadcast/add-penerima',
+                    data: {
+                        'nama': $("#nama").val(),
+                        'telp': $("#telp").val(),
+                        'kode': $("#kode_broadcast").val(),
+                    },
+                    success: function () {
+                        $("#nama").val('');
+                        $("#telp").val('');
+                        $("#deskripsi").val('');
+			            $("#cari_kontak").val(null).trigger('change');
+                        getpenerima($("#kode_broadcast").val());
+                    }
+                });
+                }
+            }
+            
+        });
+
+        //=================================================================================================
+        $('#cari_kontak').select2({
+            placeholder: 'Cari berdasarkan nama / No. RM',
+            minimumInputLength: 4,
+            ajax: {
+                url: '/broadcast/get-data-kontak',
+                dataType: 'json',
+                theme: 'bootstrap4',
+                delay: 250,
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                id: item.id,
+                                text: item.nama + " (" + item.no_rm + ")"
+                            }
+
+                        })
+                    }
+                },
+                cache: true
+            }
+        });
+
+        //=======================================================
+        $('#cari_kontak').on('select2:select', function (e) {
+            var kode = $(this).val();
+            $.ajax({
+                type: 'GET',
+                url: '/broadcast/get-data-kontak/' + kode,
+                success: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            $("#nama").val(item.nama);
+                            $("#telp").val(item.telp);
+                            $("#deskripsi").val(item.deskripsi);
+                        })
+                    }
+                }, complete: function () {
+                }
+            });
+        });
+    });
+    function getpenerimadua(kode){
+        $.ajax({
+        type: 'GET',
+        url: '/broadcast/get-penerima/'+kode,
+        success: function (data) {
+            var rows ='';
+            var no=0;
+            jumlahpenerima=0;
+            $.each(data,function(key, value){
+                jumlahpenerima+=1;
+                no +=1;
+                rows = rows + '<tr>';
+                rows = rows + '<td class="text-center">' +no+'</td>';
+                rows = rows + '<td class="text-center">' +value.penerima+'</td>';
+                rows = rows + '<td class="text-center">'+value.telp+'</td>';
+                rows = rows + '</tr>';
+            });
+            $('#tubuhnya_dua').html(rows);
+        }, complete: function () {
+        }
+    });
+    }
+    function getpenerima(kode){
+        $.ajax({
+        type: 'GET',
+        url: '/broadcast/get-penerima/'+kode,
+        success: function (data) {
+            var rows ='';
+            var no=0;
+            jumlahpenerima=0;
+            $.each(data,function(key, value){
+                jumlahpenerima+=1;
+                no +=1;
+                rows = rows + '<tr>';
+                rows = rows + '<td class="text-center">' +no+'</td>';
+                rows = rows + '<td class="text-center">' +value.penerima+'</td>';
+                rows = rows + '<td class="text-center">'+value.telp+'</td>';
+                rows = rows + '<td class="text-center"><button class="btn btn-danger btn-sm" type="button" onclick="hapuspenerima('+value.id+')"><i class="fas fa-trash"></i></button></td>';
+                rows = rows + '</tr>';
+            });
+            $('#tubuhnya').html(rows);
+        }, complete: function () {
+        }
+    });
+    }
+
+    function hapuspenerima(id){
+        $.ajax({
+            type: 'POST',
+            url: '/broadcast/hapus-penerima',
+            data: {
+                'kode': id,
+            },
+            success: function () {
+            getpenerima($("#kode_broadcast").val());
+            }
+        });
+    }
+
+</script>
+</body>
+
+</html>

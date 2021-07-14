@@ -1,0 +1,54 @@
+<%- include('../templates/h'); %>
+<%- include('../templates/n'); %>
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">User</h1>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Data User</h6>
+        </div>
+        <% datauser.forEach(function(row) { %>
+        <form method="POST" action="/users/<%= row.id %>/edit">
+        <div class="card-body">
+            <%if (messages.info) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= messages.info %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Nama</label>
+                    <input type="text" class="form-control" name="nama" value="<%= row.nama %>" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="exampleInputPassword1">Username</label>
+                    <input type="text" class="form-control" name="user" value="<%= row.username %>" required>
+                    <input type="hidden" name="old_user" value="<%= row.username %>">
+                  </div>
+                  <div class="form-group">
+                      <label for="exampleInputPassword1">Level</label>
+                      <select name="level" class="form-control">
+                          <option value="Admin" <% if (row.level=='Admin'){ %> Selected <% } %> >Admin</option>
+                          <option value="Super Admin" <% if (row.level=='Super Admin'){ %> Selected <% } %>>Super Admin</option>
+                      </select>
+                    </div>
+                  <div class="form-group">
+                    <label for="exampleInputPassword1">Password Baru</label>
+                    <input type="password" class="form-control" name="password">
+                  </div>
+                  <div class="form-group">
+                    <label for="exampleInputPassword1">Konfirmasi Password Baru</label>
+                    <input type="password" class="form-control" name="kpassword">
+                  </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" onclick="history.go(-1)" class="btn btn-danger float-right">Kembali</button>
+        </div>
+    </form>
+    <% }); %>
+    </div>
+
+</div>
+<%- include('../templates/f'); %>

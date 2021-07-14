@@ -1,0 +1,30 @@
+{
+  "name": "wanode",
+  "version": "1.0.0",
+  "description": "wa broadcash for rsmad",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "datatables-query": "^0.2.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-flash": "git://github.com/RGBboy/express-flash.git",
+    "express-session": "^1.17.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "qrcode-terminal": "^0.12.0",
+    "sequelize": "^6.6.4",
+    "sequelize-datatables": "^3.0.0",
+    "sequelize-datatables-glg": "^1.0.1",
+    "wbm": "^1.1.15",
+    "whatsapp-web.js": "^1.13.2"
+  }
+}

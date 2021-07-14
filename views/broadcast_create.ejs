@@ -1,0 +1,113 @@
+<%- include('../templates/h'); %>
+    <%- include('../templates/n'); %>
+        <div class="container-fluid">
+            <h1 class="h3 mb-2 text-gray-800">Broadcast</h1>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Tambah Data Broadcast</h6>
+                </div>
+                <form method="POST" action="/contact/add">
+                    <div class="card-body">
+                        <%if (messages.info) { %>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <%= messages.info %>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                            </div>
+                            <% } %>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card shadow mb-4">
+                                            <div class="card-header bg-success py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-white">Cari Kontak</h6>
+                                                <div class="dropdown no-arrow">
+                                                    <a href="/contact/add" target="blank()" class="ml-2">
+                                                        <button type="button" class="btn btn-sm btn-default mb-2 text-white"><i class="fas fa-plus"></i> Add Contact</button>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-group">
+                                                    <label for="exampleInputEmail1">Kontak</label>
+                                                    <select class="select2 form-control" id="cari_kontak"></select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="exampleInputPassword1">Nama</label>
+                                                    <input type="text" class="form-control" name="nama" id="nama"
+                                                        readonly>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="exampleInputPassword1">No. Telp</label>
+                                                    <input type="number" class="form-control" name="telp" id="telp"
+                                                        readonly>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="exampleInputPassword1">Deksirpsi</label>
+                                                    <textarea name="deskripsi" id="deskripsi" class="form-control" rows="3"
+                                                        readonly></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer">
+                                                <button class="btn btn-primary float-right" type="button" id="tambah_penerima">Tambah</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card shadow mb-4">
+                                            <div
+                                                class="card-header bg-info py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-white">Daftar Penerima Pesan</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col" class="text-center">No</th>
+                                                            <th scope="col" class="text-center">Nama</th>
+                                                            <th scope="col" class="text-center">Nomor Telp</th>
+                                                            <th scope="col" class="text-center">#</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tubuhnya">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Kode</label>
+                                    <input type="text" class="form-control" name="kode_broadcast" id="kode_broadcast" value="<%= kode %>" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Nama Broadcast</label>
+                                    <input type="text" class="form-control" name="nama_broadcast" id="nama_broadcast" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Tanggal Dikirim</label>
+                                    <input class="datepicker form-control" data-date-format="yyyy-mm-dd" name="tgl_broadcast" id="tgl_broadcast">
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Isi</label>
+                                    <textarea name="isi_broadcast" id="isi_broadcast" class="form-control" rows="5"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Opsi Aksi</label>
+                                    <select name="aksi" id="aksi" class="form-control">
+                                        <option value="Simpan">Simpan</option>
+                                        <%if (level==='Super Admin' ) { %>
+                                            <option value="Kirim">Simpan & Kirim</option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" id="kirimsekarang" class="btn btn-primary">Simpan</button>
+                        <button type="button" onclick="history.go(-1)"
+                            class="btn btn-danger float-right">Kembali</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <%- include('../templates/f_broadcast'); %>

@@ -1,0 +1,114 @@
+<%- include('../templates/h'); %>
+    <%- include('../templates/n'); %>
+        <div class="container-fluid">
+            <h1 class="h3 mb-2 text-gray-800">Broadcast</h1>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Detail Data Broadcast</h6>
+                </div>
+                <% data.forEach(function(row) { %>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card shadow mb-4">
+                                <div
+                                    class="card-header bg-success py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-white">Detail</h6>
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" name="kode_broadcast" id="kode_broadcast" value="<%= row.kode %>" readonly>
+                                    <table>
+                                        <tr>
+                                            <td>Kode</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td><%= row.kode %></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Nama Broadcat</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td><%= row.nama %></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal Buat</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td>
+                                                <% 
+                                                var date = row.tgl_buat;
+                                                var dateString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 )).toISOString().split("T")[0];
+                                                %>
+                                                <%= dateString %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal Kirim</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td>
+                                                <% 
+                                                var datedua = row.tgl_kirim;
+                                                var dateStringdua = new Date(datedua.getTime() - (datedua.getTimezoneOffset() * 60000 )).toISOString().split("T")[0];
+                                                %>
+                                                <%= dateStringdua %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Status</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td>
+                                                <%= row.status %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Pembuat</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td>
+                                                <%= row.namauser %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Isi</td>
+                                            <td>&nbsp;:&nbsp;</td>
+                                            <td>
+                                                <%= row.isi %>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow mb-4">
+                                <div
+                                    class="card-header bg-info py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-white">Daftar Penerima Pesan</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="text-center">No</th>
+                                                <th scope="col" class="text-center">Nama</th>
+                                                <th scope="col" class="text-center">Nomor Telp</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tubuhnya_dua">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <%if (level==='Super Admin' ) { %>
+                        <%if ( row.status === 'disimpan') { %>
+                            <a href="/broadcast/kirim-broadcast/<%= row.kode %>" class="btn btn-primary">Kirim Sekarang</a>
+                        <% }else{ %>
+                            <a href="/broadcast/kirim-broadcast/<%= row.kode %>" class="btn btn-warning">Kirim Ulang</a>
+                        <% } %>
+                    <% } %>
+                    <button type="button" onclick="history.go(-1)" class="btn btn-danger float-right">Kembali</button>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+        <%- include('../templates/f_broadcast'); %>
