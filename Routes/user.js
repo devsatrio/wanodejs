@@ -11,11 +11,11 @@ app.use(bodyParser.json());
 
 
 var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
+	host     : '192.168.3.5',
+	user     : 'pelayanan',
+	password : '-p0o9i8u7y6t',
 	database : 'db_wanode'
-});
+ });
 
 //-----------------------------------------------------------------
 app.get('/', function (req, res) {

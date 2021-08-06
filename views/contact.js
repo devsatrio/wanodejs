@@ -10,12 +10,12 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
 //-----------------------------------------------------------------
-// var connection = mysql.createConnection({
-// 	host     : 'localhost',
-// 	user     : 'root',
-// 	password : '',
-// 	database : 'db_wanode'
-// });
+var connection = mysql.createConnection({
+	host     : 'localhost',
+	user     : 'root',
+	password : '',
+	database : 'db_wanode'
+});
 
 //-----------------------------------------------------------------
 // var connection_khanza = mysql.createConnection({
@@ -25,16 +25,10 @@ app.use(bodyParser.json());
 // 	database : 'supersik_asli'
 // });
 var connection_khanza = mysql.createConnection({
-    host     : '192.168.3.5',
-    user     : 'pelayanan',
-    password : '-p0o9i8u7y6t',
-    database : 'supersik_asli'
-});
-var connection = mysql.createConnection({
-   host     : '192.168.3.5',
-   user     : 'pelayanan',
-   password : '-p0o9i8u7y6t',
-   database : 'db_wanode'
+	host     : 'localhost',
+	user     : 'root',
+	password : '',
+	database : 'sik_khanza'
 });
 
 //-----------------------------------------------------------------

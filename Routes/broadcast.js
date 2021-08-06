@@ -13,11 +13,12 @@ app.use(bodyParser.json());
 
 //-----------------------------------------------------------------------------------------------
 app.use(flash());
+
 var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
-	database : 'db_wanode'
+   host     : '192.168.3.5',
+   user     : 'pelayanan',
+   password : '-p0o9i8u7y6t',
+   database : 'db_wanode'
 });
 
 //-----------------------------------------------------------------------------------------------
