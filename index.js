@@ -4,7 +4,11 @@ const user = require('./Routes/user');
 const contact = require('./Routes/contact');
 const broadcast = require('./Routes/broadcast');
 const wabroadcast =require('./Routes/wabroadcash');
+const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
+const{Client} =require('whatsapp-web.js');
+const qrcode=require('qrcode');
+
 
 //--------------------------------------------------------------------
 var express = require('express');
@@ -12,7 +16,59 @@ var mysql = require('mysql');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 var app = express();
+const server=http.createServer(app);
+const io=socketIO(server);
+
 var flash = require('express-flash');
+
+// ------------------------------------------------------------------
+const fs=require('fs');
+const { response } = require('express');
+
+const SESSION_FILE_PATH='./wa-session.json';
+let sessioncfg;
+if(fs.existsSync(SESSION_FILE_PATH)){
+	sessioncfg=require(SESSION_FILE_PATH);
+}
+// socket io
+const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+io.on('connection',function(socket){
+	// socket.emit("message",'Connecting');
+	
+	client.on('qr',(qr)=>{
+		console.log('QR RECEIVED');
+		// qrcode.generate(qr);
+		qrcode.toDataURL(qr,(err,url)=>{
+			socket.emit('qr',url);
+			socket.emit('msg','QRCode received');
+		})
+	})
+	
+	client.on('ready',()=>{
+		console.log('Client Ready');
+		socket.emit('msg','Whatsapp Ready!');
+		socket.emit('qr','/static/img/img.jpg');
+		sessioncfg=session;
+	})
+	client.on('authenticated',(session)=>{
+		console.log('authenticated');
+		sessioncfg=session;
+		fs.writeFile(SESSION_FILE_PATH,JSON.stringify(session),function(err){
+			if(err){
+				console.error(err);	
+			}
+		})
+	})
+});
+client.on('message',msg=>{
+	if(msg.body=="!ping"){
+		msg.reply("pong");
+	}
+})
+client.initialize();
+// app.get('/generate',async(req,res)=>{
+	
+// })	
 
 //--------------------------------------------------------------------
 app.use(flash());
@@ -44,7 +100,20 @@ app.set('view engine', 'ejs');
 app.get('/', function (req, res) {
   res.render('index');
 });
-
+app.post('/send-contoh',async(req,res)=>{
+	const{nomor,msg}=req.body;
+	client.sendMessage(nomor,msg).then(response=>{
+		res.json({
+			message:response,
+			code:200,
+		})
+	}).catch(err=>{
+		res.json({
+			message:err,
+			code:201,
+		})
+	});
+})
 //-----------------------------------------------------------------
 app.use('/static', express.static('public'))
 
@@ -112,6 +181,6 @@ app.use('/broadcast',broadcast)
 app.use('/wa',wabroadcast)
 
 //-----------------------------------------------------------------
-app.listen(8000, function () {
+server.listen(8000, function () {
   console.log('Listening to Port 8000');
 });

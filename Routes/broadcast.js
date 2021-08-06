@@ -4,6 +4,12 @@ var url = require('url');
 const { Client } = require('whatsapp-web.js');
 const fs = require('fs');
 
+const SESSION_FILE_PATH='../wa-session.json';
+let sessioncfg;
+if(fs.existsSync(SESSION_FILE_PATH)){
+    sessioncfg=require(SESSION_FILE_PATH);
+}
+const client=new Client({puppeteer:{headless:true},session:sessioncfg});
 //-----------------------------------------------------------------------------------------------
 let app = express.Router();
 var mysql = require('mysql');
@@ -15,9 +21,9 @@ app.use(bodyParser.json());
 app.use(flash());
 
 var connection = mysql.createConnection({
-   host     : '192.168.3.5',
-   user     : 'pelayanan',
-   password : '-p0o9i8u7y6t',
+   host     : 'localhost',
+   user     : 'root',
+   password : '',
    database : 'db_wanode'
 });
 
@@ -84,31 +90,31 @@ app.post('/kirim', function (req, res) {
                 // if (fs.existsSync(SESSION_FILE_PATH)) {
                 //     sessionCfg = require(SESSION_FILE_PATH);
                 // }
-                let client = new Client({ puppeteer: { headless: false }});
-                client.initialize();
-                client.on('qr', (qr) => {
-                    console.log('QR RECEIVED', qr);
-                });
-                client.on('authenticated', (session) => {
-                    console.log('AUTHENTICATED', session);
-                    // sessionCfg=session;
-                    // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-                    //     if (err) {
-                    //         console.error(err);
-                    //     }
-                    // });
-                });
-                client.on('auth_failure', msg => {
-                    console.error('AUTHENTICATION FAILURE', msg);
-                });
-                client.on('ready', () => {
+                
+                // client.initialize();
+                // client.on('qr', (qr) => {
+                //     console.log('QR RECEIVED', qr);
+                // });
+                // client.on('authenticated', (session) => {
+                //     console.log('AUTHENTICATED', session);
+                //     // sessionCfg=session;
+                //     // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+                //     //     if (err) {
+                //     //         console.error(err);
+                //     //     }
+                //     // });
+                // });
+                // client.on('auth_failure', msg => {
+                //     console.error('AUTHENTICATION FAILURE', msg);
+                // });
+                // client.on('ready', () => {
                     for(var i=0; i<rows.length; i++) {
                         var telp = rows[i]['telp'];
                         var newtelp = telp.substring(1);
                         var finaltelp = '62'+newtelp+'@c.us';
                         client.sendMessage(finaltelp, deskripsi).then((response) => {});
                     }
-                });
+                // });
                 res.end('{"success" : "Updated Successfully", "status" : 200}');
             });
         }else{
@@ -167,25 +173,25 @@ app.post('/update', function (req, res) {
     [tgl_kirim,deskripsi,status,nama,kode], function(error, results, fields) {
         if(aksi==='Kirim'){
             connection.query("SELECT * FROM tb_detail_broadcast WHERE kode=?",[kode] ,function(err, rows, fields){
-                let client = new Client({ puppeteer: { headless: false }});
-                client.initialize();
-                client.on('qr', (qr) => {
-                    console.log('QR RECEIVED', qr);
-                });
-                client.on('authenticated', (session) => {
-                    console.log('AUTHENTICATED', session);
-                });
-                client.on('auth_failure', msg => {
-                    console.error('AUTHENTICATION FAILURE', msg);
-                });
-                client.on('ready', () => {
+                // const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+                // client.initialize();
+                // client.on('qr', (qr) => {
+                //     console.log('QR RECEIVED', qr);
+                // });
+                // client.on('authenticated', (session) => {
+                //     console.log('AUTHENTICATED', session);
+                // });
+                // client.on('auth_failure', msg => {
+                //     console.error('AUTHENTICATION FAILURE', msg);
+                // });
+                // client.on('ready', () => {
                     for(var i=0; i<rows.length; i++) {
                         var telp = rows[i]['telp'];
                         var newtelp = telp.substring(1);
                         var finaltelp = '62'+newtelp+'@c.us';
                         client.sendMessage(finaltelp, deskripsi).then((response) => {});
                     }
-                });
+                // });
                 res.end('{"success" : "Updated Successfully", "status" : 200}');
             });
         }else{
@@ -195,7 +201,7 @@ app.post('/update', function (req, res) {
 });
 
 //-----------------------------------------------------------------------------------------------
-app.get('/kirim-broadcast/:kode', function (req, res) {
+app.get('/kirim-broadcast/:kode', async (req, res) =>{
     var kode = req.params.kode;
     connection.query("select * from tb_broadcast where kode='"+kode+"'", function(error, hasil, fields) {
         connection.query("Update tb_broadcast set status='terkirim' where kode='"+kode+"'", function(error, results, fields) {
@@ -206,37 +212,48 @@ app.get('/kirim-broadcast/:kode', function (req, res) {
                 // if (fs.existsSync(SESSION_FILE_PATH)) {
                 //     sessionCfg = require(SESSION_FILE_PATH);
                 // }
-                let client = new Client({ puppeteer: { headless: false }});
-                client.initialize();
-                client.on('qr', (qr) => {
-                    console.log('QR RECEIVED', qr);
-                });
-                client.on('authenticated', (session) => {
-                    console.log('AUTHENTICATED', session);
-                    // sessionCfg=session;
-                    // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-                    //     if (err) {
-                    //         console.error(err);
-                    //     }
-                    // });
-                });
-                client.on('auth_failure', msg => {
-                    // const path = './session.json'
-                    // try {
-                    // fs.unlinkSync(path)
-                    // } catch(err) {
-                    // console.error(err)
-                    // }
-                    console.error('AUTHENTICATION FAILURE', msg);
-                });
-                client.on('ready', () => {
+                // const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+                // client.initialize();
+                // client.on('qr', (qr) => {
+                //     console.log('QR RECEIVED', qr);
+                // });
+                // client.on('authenticated', (session) => {
+                //     console.log('AUTHENTICATED', session);
+                //     // sessionCfg=session;
+                //     // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+                //     //     if (err) {
+                //     //         console.error(err);
+                //     //     }
+                //     // });
+                // });
+                // client.on('auth_failure', msg => {
+                //     // const path = './session.json'
+                //     // try {
+                //     // fs.unlinkSync(path)
+                //     // } catch(err) {
+                //     // console.error(err)
+                //     // }
+                //     console.error('AUTHENTICATION FAILURE', msg);
+                // });
+                // client.on('ready', () => {
                     for(var i=0; i<rows.length; i++) {
                         var telp = rows[i]['telp'];
                         var newtelp = telp.substring(1);
                         var finaltelp = '62'+newtelp+'@c.us';
-                        client.sendMessage(finaltelp, deskripsi).then((response) => {});
+                        // console.log(deskripsi);
+                        client.sendMessage(finaltelp, deskripsi).then((response) => {
+                            res.status(200).json({
+                                status:true,
+                                response:response
+                            })
+                        }).catch(err=>{
+                            res.status(500).json({
+                                status:false,
+                                response:err
+                            })
+                        });
                     }
-                });
+                // });
                 req.flash('infoerror', 'Pesan dikirim');
                 res.redirect('/broadcast');
             });
