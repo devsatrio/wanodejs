@@ -1,9 +1,5 @@
 const http = require('http');
-const home = require('./Routes/home');
-const user = require('./Routes/user');
-const contact = require('./Routes/contact');
-const broadcast = require('./Routes/broadcast');
-const wabroadcast =require('./Routes/wabroadcash');
+
 // const wasend=require('./sendwhatsapp');
 const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
@@ -159,28 +155,9 @@ app.get('/logout', function (req, res) {
 	res.redirect('/');
   });
 
-//-----------------------------------------------------------------
-app.use('/home',home)
-
-//-----------------------------------------------------------------
-app.use('/users',user)
-
-//-----------------------------------------------------------------
-app.use('/contact',contact)
-
-//-----------------------------------------------------------------
-app.use('/broadcast',broadcast)
 
 
-//-----------------------------------------------------------------
-app.use('/wa',wabroadcast)
 
-//-----------------------------------------------------------------
-function sendWaMsg(nomor,msg){
-	let snd=client.sendMessage(nomor,msg);	
-	return snd;
-};
-
-module.exports={ sendWaMsg,app,server,add,client};
+module.exports={app,server,add,client};
 
 

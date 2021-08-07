@@ -1,15 +1,16 @@
 const express = require('express');
 var flash = require('express-flash');
 var url = require('url');
-const{Client} =require('whatsapp-web.js');
+// const{Client} =require('whatsapp-web.js');
 const fs = require('fs');
+const {client}=require('../index');
 
-const SESSION_FILE_PATH='../wa-session.json';
-let sessioncfg;
-if(fs.existsSync(SESSION_FILE_PATH)){
-    sessioncfg=require(SESSION_FILE_PATH);
-}
-const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+// const SESSION_FILE_PATH='../wa-session.json';
+// let sessioncfg;
+// if(fs.existsSync(SESSION_FILE_PATH)){
+//     sessioncfg=require(SESSION_FILE_PATH);
+// }
+// const client=new Client({puppeteer:{headless:true},session:sessioncfg});
 //-----------------------------------------------------------------------------------------------
 let app = express.Router();
 var mysql = require('mysql');
@@ -222,57 +223,57 @@ app.post('/send-contoh',function(req,res){
 })
 app.get('/kirim-broadcast/:kode', function (req, res){
     var kode = req.params.kode;    
-    // connection.query("select * from tb_broadcast where kode='"+kode+"'", function(error, hasil, fields) {
-    //     connection.query("Update tb_broadcast set status='terkirim' where kode='"+kode+"'", function(error, results, fields) {
-    //         connection.query("SELECT * FROM tb_detail_broadcast WHERE kode=?",[kode] ,function(err, rows, fields){
-    //             var deskripsi = hasil[0]['isi'];
-    //             // let SESSION_FILE_PATH = './session.json';
-    //             // let sessionCfg;
-    //             // if (fs.existsSync(SESSION_FILE_PATH)) {
-    //             //     sessionCfg = require(SESSION_FILE_PATH);
-    //             // }
-    //             // const client=new Client({puppeteer:{headless:true},session:sessioncfg});
-    //             client.initialize();
-    //             // client.on('qr', (qr) => {
-    //             //     console.log('QR RECEIVED', qr);
-    //             // });
-    //             // client.on('authenticated', (session) => {
-    //             //     console.log('AUTHENTICATED', session);
-    //             //     // sessionCfg=session;
-    //             //     // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-    //             //     //     if (err) {
-    //             //     //         console.error(err);
-    //             //     //     }
-    //             //     // });
-    //             // });
-    //             // client.on('auth_failure', msg => {
-    //             //     // const path = './session.json'
-    //             //     // try {
-    //             //     // fs.unlinkSync(path)
-    //             //     // } catch(err) {
-    //             //     // console.error(err)
-    //             //     // }
-    //             //     console.error('AUTHENTICATION FAILURE', msg);
-    //             // });
-    //             // client.on('ready', () => {
-    //                 for(var i=0; i<rows.length; i++) {
-    //                     var telp = rows[i]['telp'];
-    //                     var newtelp = telp.substring(1);
-    //                     var finaltelp = '62'+newtelp+'@c.us';
-    //                     // console.log(deskripsi);
-    //                     client.sendMessage(finaltelp, deskripsi).then((response) => {
-    //                         console.log(response);
-    //                     }).catch(err=>{
-    //                        console.log(err);
-    //                     });
-    //                 }
-    //             // });
+    connection.query("select * from tb_broadcast where kode='"+kode+"'", function(error, hasil, fields) {
+        connection.query("Update tb_broadcast set status='terkirim' where kode='"+kode+"'", function(error, results, fields) {
+            connection.query("SELECT * FROM tb_detail_broadcast WHERE kode=?",[kode] ,function(err, rows, fields){
+                var deskripsi = hasil[0]['isi'];
+                // let SESSION_FILE_PATH = './session.json';
+                // let sessionCfg;
+                // if (fs.existsSync(SESSION_FILE_PATH)) {
+                //     sessionCfg = require(SESSION_FILE_PATH);
+                // }
+                // const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+                // client.initialize();
+                // client.on('qr', (qr) => {
+                //     console.log('QR RECEIVED', qr);
+                // });
+                // client.on('authenticated', (session) => {
+                //     console.log('AUTHENTICATED', session);
+                //     // sessionCfg=session;
+                //     // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+                //     //     if (err) {
+                //     //         console.error(err);
+                //     //     }
+                //     // });
+                // });
+                // client.on('auth_failure', msg => {
+                //     // const path = './session.json'
+                //     // try {
+                //     // fs.unlinkSync(path)
+                //     // } catch(err) {
+                //     // console.error(err)
+                //     // }
+                //     console.error('AUTHENTICATION FAILURE', msg);
+                // });
+                // client.on('ready', () => {
+                    for(var i=0; i<rows.length; i++) {
+                        var telp = rows[i]['telp'];
+                        var newtelp = telp.substring(1);
+                        var finaltelp = '62'+newtelp+'@c.us';
+                        // console.log(deskripsi);
+                        client.sendMessage(finaltelp, deskripsi).then((response) => {
+                            console.log(response);
+                        }).catch(err=>{
+                           console.log(err);
+                        });
+                    }
+                // });
                
-    //         });
-    //     });
-    // });
-    // req.flash('infoerror', 'Pesan dikirim');
-    // res.redirect('/broadcast');
+            });
+        });
+    });
+    req.flash('infoerror', 'Pesan dikirim');
+    res.redirect('/broadcast');
 });
 
 //-----------------------------------------------------------------------------------------------
