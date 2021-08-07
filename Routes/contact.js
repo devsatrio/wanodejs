@@ -1,6 +1,7 @@
 const express = require('express');
 var flash = require('express-flash');
 var url = require('url');
+const dbk=require('../config/dbk');
 
 //-----------------------------------------------------------------
 let app = express.Router();

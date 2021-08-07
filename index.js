@@ -4,12 +4,16 @@ const user = require('./Routes/user');
 const contact = require('./Routes/contact');
 const broadcast = require('./Routes/broadcast');
 const wabroadcast =require('./Routes/wabroadcash');
+// const wasend=require('./sendwhatsapp');
 const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
 const{Client} =require('whatsapp-web.js');
 const qrcode=require('qrcode');
 
-
+function add(x, y) {
+	return x + y;
+  }
+  
 //--------------------------------------------------------------------
 var express = require('express');
 var mysql = require('mysql');
@@ -66,6 +70,9 @@ client.on('message',msg=>{
 	}
 })
 client.initialize();
+
+
+
 // app.get('/generate',async(req,res)=>{
 	
 // })	
@@ -79,6 +86,7 @@ app.use(session({
 }));
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
+// app.use(wasend);
 app.use(function (req, res, next) {
 	res.locals.user = req.session.username || null;
 	res.locals.level = req.session.level || null;
@@ -100,20 +108,7 @@ app.set('view engine', 'ejs');
 app.get('/', function (req, res) {
   res.render('index');
 });
-app.post('/send-contoh',async(req,res)=>{
-	const{nomor,msg}=req.body;
-	client.sendMessage(nomor,msg).then(response=>{
-		res.json({
-			message:response,
-			code:200,
-		})
-	}).catch(err=>{
-		res.json({
-			message:err,
-			code:201,
-		})
-	});
-})
+
 //-----------------------------------------------------------------
 app.use('/static', express.static('public'))
 
@@ -181,6 +176,11 @@ app.use('/broadcast',broadcast)
 app.use('/wa',wabroadcast)
 
 //-----------------------------------------------------------------
-server.listen(8000, function () {
-  console.log('Listening to Port 8000');
-});
+function sendWaMsg(nomor,msg){
+	let snd=client.sendMessage(nomor,msg);	
+	return snd;
+};
+
+module.exports={ sendWaMsg,app,server,add,client};
+
+

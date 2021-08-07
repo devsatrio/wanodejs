@@ -2,10 +2,10 @@
   "name": "wanode",
   "version": "1.0.0",
   "description": "wa broadcash for rsmad",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +27,6 @@
     "sequelize-datatables-glg": "^1.0.1",
     "socket.io": "^4.1.3",
     "wbm": "^1.1.15",
-    "whatsapp-web.js": "^1.13.2"
+    "whatsapp-web.js": "^1.14.0"
   }
 }
