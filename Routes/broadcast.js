@@ -22,12 +22,13 @@ app.use(bodyParser.json());
 //-----------------------------------------------------------------------------------------------
 app.use(flash());
 
-var connection = mysql.createConnection({
-   host     : 'localhost',
-   user     : 'root',
-   password : '',
-   database : 'db_wanode'
-});
+// var connection = mysql.createConnection({
+//    host     : 'localhost',
+//    user     : 'root',
+//    password : '',
+//    database : 'db_wanode'
+// });
+const {connection}=require('../config/db');
 
 //-----------------------------------------------------------------------------------------------
 app.get('/', function (req, res) {
@@ -114,7 +115,11 @@ app.post('/kirim', function (req, res) {
                         var telp = rows[i]['telp'];
                         var newtelp = telp.substring(1);
                         var finaltelp = '62'+newtelp+'@c.us';
-                        client.sendMessage(finaltelp, deskripsi).then((response) => {});
+                        client.sendMessage(finaltelp, deskripsi).then((response) => {
+                            console.log(response);
+                        }).catch(err=>{
+                           console.log(err);
+                        });
                     }
                 // });
                 res.end('{"success" : "Updated Successfully", "status" : 200}');
@@ -191,7 +196,11 @@ app.post('/update', function (req, res) {
                         var telp = rows[i]['telp'];
                         var newtelp = telp.substring(1);
                         var finaltelp = '62'+newtelp+'@c.us';
-                        client.sendMessage(finaltelp, deskripsi).then((response) => {});
+                        client.sendMessage(finaltelp, deskripsi).then((response) => {
+                            console.log(response);
+                        }).catch(err=>{
+                           console.log(err);
+                        });
                     }
                 // });
                 res.end('{"success" : "Updated Successfully", "status" : 200}');

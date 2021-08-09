@@ -25,18 +25,20 @@ app.use(bodyParser.json());
 // 	password : '-p0o9i8u7y6t',
 // 	database : 'supersik_asli'
 // });
-var connection_khanza = mysql.createConnection({
-    host     : '192.168.3.5',
-    user     : 'pelayanan',
-    password : '-p0o9i8u7y6t',
-    database : 'supersik_asli'
-});
-var connection = mysql.createConnection({
-   host     : '192.168.3.5',
-   user     : 'pelayanan',
-   password : '-p0o9i8u7y6t',
-   database : 'db_wanode'
-});
+// var connection_khanza = mysql.createConnection({
+//     host     : '192.168.3.5',
+//     user     : 'pelayanan',
+//     password : '-p0o9i8u7y6t',
+//     database : 'supersik_asli'
+// });
+// var connection = mysql.createConnection({
+//    host     : '192.168.3.5',
+//    user     : 'pelayanan',
+//    password : '-p0o9i8u7y6t',
+//    database : 'db_wanode'
+// });
+const {connection}=require('../config/db');
+const {connection_khanza}=require('../config/dbk');
 
 //-----------------------------------------------------------------
 app.get('/', function (req, res) {
