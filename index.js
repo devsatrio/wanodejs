@@ -155,9 +155,6 @@ app.get('/logout', function (req, res) {
 	res.redirect('/');
   });
 
-
-
-
 module.exports={app,server,add,client};
 
 
