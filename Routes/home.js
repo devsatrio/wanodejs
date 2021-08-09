@@ -11,13 +11,13 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
 //--------------------------------------------------------------------
-var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
-	database : 'db_wanode'
- });
-
+// var connection = mysql.createConnection({
+// 	host     : 'localhost',
+// 	user     : 'root',
+// 	password : '',
+// 	database : 'db_wanode'
+//  });
+const {connection}=require('../config/db');
 //-----------------------------------------------------------------
 app.get('/', function (req, res) {
     if (req.session.loggedin) {

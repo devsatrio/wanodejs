@@ -10,13 +10,13 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
 
-var connection = mysql.createConnection({
-	host     : '192.168.3.5',
-	user     : 'pelayanan',
-	password : '-p0o9i8u7y6t',
-	database : 'db_wanode'
- });
-
+// var connection = mysql.createConnection({
+// 	host     : '192.168.3.5',
+// 	user     : 'pelayanan',
+// 	password : '-p0o9i8u7y6t',
+// 	database : 'db_wanode'
+//  });
+const {connection}=require('../config/db');
 //-----------------------------------------------------------------
 app.get('/', function (req, res) {
     if (req.session.loggedin) {

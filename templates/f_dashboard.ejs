@@ -30,8 +30,7 @@
 <script src="/static/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
 <script src="/static/vendor/socket.io/socket.io.min.js"></script>
 <script>
-    var jumlahpenerima=0;
-    $(document).ready(function () {
+    function getWaCon() {
         var socket=io.connect('http://localhost:8000',{path:'/socket.io'});
         socket.on('msg',function(msg){
             $('.logs').html(msg)
@@ -39,6 +38,11 @@
         socket.on('qr',function(src){
             $('#imgqr').attr('src',src);
         });
+    }
+    var jumlahpenerima=0;
+    $(document).ready(function () {
+        generateapi();
+        getWaCon();
         $.ajax({
             type: 'GET',
             url: '/home/getdata',
@@ -50,6 +54,31 @@
             }
         });
     });
+    function hapusCred() {
+        $.ajax({
+            type:'post',
+            url:'/hapus-credential',
+            success:function(response){
+                if(response.sts=="1"){
+                    getWaCon();
+                }else{
+                    // alert('credential gagal dihapus! : ' + response);
+                    getWaCon();
+                    location.reload('/logout');                    
+                }
+            }
+        })
+    }
+    function generateapi() {
+        $.ajax({
+            type:'get',
+            url:'/generate-newapi',
+            success:function(response){
+                alert('Token baru sedang pros, tunggu sampai qr ditampilkan !');
+                getWaCon();
+            }
+        })
+    }
 </script>
 </body>
 

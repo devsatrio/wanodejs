@@ -1,10 +1,11 @@
 const http = require('http');
-
+const {connection}=require('./config/db');
 // const wasend=require('./sendwhatsapp');
 const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
 const{Client} =require('whatsapp-web.js');
 const qrcode=require('qrcode');
+
 
 function add(x, y) {
 	return x + y;
@@ -30,6 +31,7 @@ let sessioncfg;
 if(fs.existsSync(SESSION_FILE_PATH)){
 	sessioncfg=require(SESSION_FILE_PATH);
 }
+
 // socket io
 const client=new Client({puppeteer:{headless:true},session:sessioncfg});
 io.on('connection',function(socket){
@@ -90,12 +92,12 @@ app.use(function (req, res, next) {
 	next();
   });
 //--------------------------------------------------------------------
-var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
-	database : 'db_wanode'
-});
+// var connection = mysql.createConnection({
+// 	host     : 'localhost',
+// 	user     : 'root',
+// 	password : '',
+// 	database : 'db_wanode'
+// });
 
 //-----------------------------------------------------------------
 app.set('view engine', 'ejs');
@@ -154,7 +156,36 @@ app.get('/logout', function (req, res) {
 	req.flash('info', 'Logout Sukses');
 	res.redirect('/');
   });
-
-module.exports={app,server,add,client};
+// hapus credential whatsapp
+app.post('/hapus-credential',async(req,res)=>{
+	try {
+		let fdel=fs.unlinkSync(SESSION_FILE_PATH);
+		if(fdel){
+			return res.json({
+				response:{
+					sts:'1',
+				}
+			})	
+		}else{
+			return res.json({
+				response:{
+					sts:'0',
+				}
+			})
+		}
+		res.redirect('/logout');
+	} catch (error) {
+		console.log(error);
+		return res.json({
+			response:{
+				sts:'0',
+				msg:error,
+			}
+		})
+		res.redirect('/logout');	
+	}
+	
+})
+module.exports={app,server,add,client,io,qrcode,fs,SESSION_FILE_PATH,session};
 
 
