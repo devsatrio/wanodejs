@@ -19,14 +19,14 @@
     "express-flash": "git://github.com/RGBboy/express-flash.git",
     "express-session": "^1.17.2",
     "mysql": "^2.18.1",
-    "mysql2": "^2.2.5",
+    "mysql2": "^2.3.0",
     "qrcode": "^1.4.4",
     "qrcode-terminal": "^0.12.0",
-    "sequelize": "^6.6.4",
+    "sequelize": "^6.6.5",
     "sequelize-datatables": "^3.0.0",
     "sequelize-datatables-glg": "^1.0.1",
     "socket.io": "^4.1.3",
-    "wbm": "^1.1.15",
+    "wbm": "^1.1.16",
     "whatsapp-web.js": "^1.14.0"
   }
 }
