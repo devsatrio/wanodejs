@@ -174,7 +174,11 @@ app.post('/update', function (req, res) {
     var nama = req.body.nama;
 	var tgl_kirim = req.body.tgl;
 	var deskripsi = req.body.deskripsi;
-    var status = 'terkirim';
+    if(aksi==='Kirim'){
+        var status = 'terkirim';
+    }else{
+        var status = 'disimpan';
+    }
 
     connection.query('Update tb_broadcast set tgl_kirim=?,isi=?,status=?,nama=? where kode=?', 
     [tgl_kirim,deskripsi,status,nama,kode], function(error, results, fields) {
