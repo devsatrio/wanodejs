@@ -2,10 +2,10 @@
   "name": "wanode",
   "version": "1.0.0",
   "description": "wa broadcash for rsmad",
-  "main": "app.js",
+  "main": "appwa.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node appwa.js"
   },
   "author": "",
   "license": "ISC",

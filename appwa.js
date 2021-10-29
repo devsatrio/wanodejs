@@ -22,7 +22,7 @@ app.use('/users',user)
 app.use('/contact',contact)
 //-----------------------------------------------------------------
 app.use('/wa',wabroadcast)
-app.get('/generate-newapi',async(req,res)=>{
+app.get('/generate-newapi',function(req,res){
 	io.on('connection',function(socket){
 		// socket.emit("message",'Connecting');
 		

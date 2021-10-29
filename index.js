@@ -5,7 +5,7 @@ const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
 const{Client} =require('whatsapp-web.js');
 const qrcode=require('qrcode');
-
+require('events').EventEmitter.defaultMaxListeners = 100;
 
 function add(x, y) {
 	return x + y;
@@ -35,8 +35,7 @@ if(fs.existsSync(SESSION_FILE_PATH)){
 // socket io
 const client=new Client({puppeteer:{headless:true},session:sessioncfg});
 io.on('connection',function(socket){
-	// socket.emit("message",'Connecting');
-	
+	// socket.emit("message",'Connecting');	
 	client.on('qr',(qr)=>{
 		console.log('QR RECEIVED');
 		// qrcode.generate(qr);
