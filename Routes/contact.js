@@ -46,16 +46,24 @@ app.get('/', function (req, res) {
         const limit = 200
         const page = req.query.page || 1;
         const offset = (page - 1) * limit
-        const prodsQuery = "select * from tb_contact order by id desc limit "+limit+" OFFSET "+offset
+        const prodsQuery = "select * from tb_contact order by id desc"
         connection.query(prodsQuery, function (error, results, fields) {
-            if (error) throw error;
-            var jsonResult = {
-                'products_page_count':Math.round(results.length/limit),
-                'page_number':page,
-                'products':results
-            }
-            res.render('contact',jsonResult);
-            res.end();
+            if(error){
+                throw error;
+            }else{
+                const prodsQueryPagin = "select * from tb_contact order by id desc limit "+limit+" OFFSET "+offset
+                connection.query(prodsQueryPagin, function (er, resu, fiel) {
+                    var jsonResult = {
+                        'total_data':results.length,
+                        'products_page_count':Math.round(results.length/limit),
+                        'page_number':page,
+                        'offset':offset,
+                        'products':resu
+                    }
+                    res.render('contact',jsonResult);
+                    res.end();
+                })
+            } 
         })
 	} else {
 		req.flash('infoerror', 'Maaf, Anda harus login');

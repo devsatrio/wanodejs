@@ -42,7 +42,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% var number=1; %>
+                                    <% var number= offset + 1; %>
                                         <% products.forEach(function(row) { %>
                                             <tr>
                                                 <td>
@@ -97,6 +97,7 @@
                                 </ul>
                             </nav>
                         </div>
+                        <span>Total Data <%= total_data; %> </span>
                 </div>
             </div>
 

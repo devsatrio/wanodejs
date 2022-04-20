@@ -33,19 +33,27 @@ const {connection}=require('../config/db');
 //-----------------------------------------------------------------------------------------------
 app.get('/', function (req, res) {
     if (req.session.loggedin) {
-        const limit = 100
+        const limit = 50
         const page = req.query.page || 1;
         const offset = (page - 1) * limit
-        const prodsQuery = "select tb_broadcast.*,tb_users.nama as namauser from tb_broadcast left join tb_users on tb_users.id = tb_broadcast.id_user order by tb_broadcast.id desc limit "+limit+" OFFSET "+offset
+        const prodsQuery = "select tb_broadcast.*,tb_users.nama as namauser from tb_broadcast left join tb_users on tb_users.id = tb_broadcast.id_user order by tb_broadcast.id desc"
         connection.query(prodsQuery, function (error, results, fields) {
-            if (error) throw error;
-            var jsonResult = {
-                'products_page_count':Math.round(results.length/limit),
-                'page_number':page,
-                'products':results
-            }
-            res.render('broadcast',jsonResult);
-            res.end();
+            if(error){
+                throw error;
+            }else{
+                const prodsQueryPagin = "select tb_broadcast.*,tb_users.nama as namauser from tb_broadcast left join tb_users on tb_users.id = tb_broadcast.id_user order by tb_broadcast.id desc limit "+limit+" OFFSET "+offset
+                connection.query(prodsQueryPagin, function (er, resu, fiel) {
+                    var jsonResult = {
+                        'total_data':results.length,
+                        'offset':offset,
+                        'products_page_count':Math.round(results.length/limit),
+                        'page_number':page,
+                        'products':resu
+                    }
+                    res.render('broadcast',jsonResult);
+                    res.end();
+                })
+            } 
         })
 	} else {
         req.flash('infoerror', 'Maaf, Anda harus login');

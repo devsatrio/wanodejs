@@ -3,7 +3,7 @@ const {connection}=require('./config/db');
 // const wasend=require('./sendwhatsapp');
 const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
-const{Client} =require('whatsapp-web.js');
+const{Client,NoAuth } =require('whatsapp-web.js');
 const qrcode=require('qrcode');
 require('events').EventEmitter.defaultMaxListeners = 100;
 
@@ -33,7 +33,7 @@ if(fs.existsSync(SESSION_FILE_PATH)){
 }
 
 // socket io
-const client=new Client({puppeteer:{headless:true},session:sessioncfg});
+const client=new Client({ authStrategy: new NoAuth(),puppeteer:{headless:true},restartOnAuthFail: true});
 io.on('connection',function(socket){
 	// socket.emit("message",'Connecting');	
 	client.on('qr',(qr)=>{
@@ -54,12 +54,18 @@ io.on('connection',function(socket){
 	client.on('authenticated',(session)=>{
 		console.log('authenticated');
 		sessioncfg=session;
-		fs.writeFile(SESSION_FILE_PATH,JSON.stringify(session),function(err){
-			if(err){
-				console.error(err);	
-			}
-		})
+		// fs.writeFile(SESSION_FILE_PATH,JSON.stringify(session),function(err){
+		// 	if(err){
+		// 		console.error(err);	
+		// 	}
+		// })
 	})
+
+	client.on('disconnected', (reason) => {
+		// Destroy and reinitialize the client when disconnected
+		client.destroy();
+		client.initialize();
+	});
 });
 client.on('message',msg=>{
 	if(msg.body=="!ping"){
