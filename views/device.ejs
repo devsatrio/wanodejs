@@ -1,0 +1,199 @@
+<%- include('../templates/h'); %>
+    <%- include('../templates/n'); %>
+        <div class="container-fluid">
+            <!-- Page Header -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-1 text-gray-800 font-weight-bold">
+                        <i class="fas fa-qrcode text-success mr-2"></i>Hubungkan Perangkat
+                    </h1>
+                    <p class="text-muted mb-0">Hubungkan smartphone Anda dengan memindai kode QR untuk mengaktifkan engine pengiriman pesan broadcast.</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0">
+                        <li class="breadcrumb-item"><a href="/home"><i class="fas fa-home mr-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Hubungkan</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <%if (messages.info) { %>
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-check-circle mr-1"></i> <%= messages.info %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+            <%if (messages.infoerror) { %>
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> <%= messages.infoerror %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+
+            <div class="row">
+                <!-- Kolom Kiri: QR Code & Status Engine -->
+                <div class="col-xl-5 col-lg-6 mb-4">
+                    <div class="card shadow h-100" id="waConnectionCard">
+                        <div class="card-header py-3 d-flex flex-wrap align-items-center justify-content-between bg-white border-bottom">
+                            <h6 class="m-0 font-weight-bold text-primary d-flex align-items-center">
+                                <i class="fas fa-qrcode mr-2 text-success"></i> 
+                                Scanner QR Code WhatsApp
+                            </h6>
+                            <span id="waStatusBadge" class="badge badge-secondary px-2 py-1 font-weight-bold">
+                                <i class="fas fa-spinner fa-spin mr-1"></i> Memeriksa status...
+                            </span>
+                        </div>
+                        <div class="card-body text-center p-4 d-flex flex-column align-items-center justify-content-center">
+                            <!-- Real-time Status Text -->
+                            <div class="logs mb-3 w-100">
+                                <div class="alert alert-secondary py-2 px-3 font-weight-bold mb-0 shadow-sm" id="statusAlertText">
+                                    <i class="fas fa-spinner fa-spin mr-1"></i> Menghubungkan ke server WhatsApp...
+                                </div>
+                            </div>
+
+                            <!-- QR Box Container -->
+                            <div id="qrContainer" class="p-3 bg-light rounded d-flex flex-column align-items-center justify-content-center shadow-sm border mb-3" style="width: 100%; max-width: 380px; min-height: 380px; position: relative;">
+                                <!-- Spinner State -->
+                                <div id="qrLoadingSpinner" style="display: none;" class="py-5 text-center">
+                                    <i class="fas fa-spinner fa-spin fa-3x text-success mb-3"></i>
+                                    <h6 class="text-dark font-weight-bold mb-1">Membuat QR Code WhatsApp baru...</h6>
+                                    <p class="text-muted small mb-0">Mohon tunggu beberapa detik, engine sedang diinisialisasi.</p>
+                                </div>
+
+                                <!-- QR Image -->
+                                <img src="" alt="WhatsApp QR Code" id="imgqr" style="max-width: 340px; width: 100%; border-radius: 8px; display: none;" class="img-fluid border shadow-sm">
+
+                                <!-- Connected State -->
+                                <div id="waConnectedState" style="display: none;" class="py-4 px-3 text-center">
+                                    <div class="text-success mb-3">
+                                        <i class="fas fa-check-circle fa-5x"></i>
+                                    </div>
+                                    <h4 class="font-weight-bold text-dark mb-2">WhatsApp Terhubung!</h4>
+                                    <p class="text-muted small mb-3">Sesi WhatsApp aktif. Engine siap digunakan untuk pengiriman broadcast otomatis.</p>
+                                    <div class="d-flex justify-content-center flex-wrap">
+                                        <a href="/broadcast/tambah" class="btn btn-sm btn-success font-weight-bold m-1">
+                                            <i class="fas fa-paper-plane mr-1"></i> Buat Broadcast
+                                        </a>
+                                        <a href="/broadcast" class="btn btn-sm btn-outline-primary font-weight-bold m-1">
+                                            <i class="fas fa-list mr-1"></i> List Broadcast
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tombol Kontrol Aksi -->
+                            <div class="w-100 d-flex flex-column flex-sm-row justify-content-center mt-2" style="gap: 8px;">
+                                <button type="button" class="btn btn-success font-weight-bold shadow-sm" id="btnReloadQr" onclick="reloadQrCode(true)">
+                                    <i class="fas fa-sync-alt mr-1" id="iconReloadQr"></i> Reload / Refresh QR
+                                </button>
+                                <button type="button" class="btn btn-outline-danger font-weight-bold shadow-sm" id="btnLogoutWa" onclick="logoutWaSession()">
+                                    <i class="fas fa-sign-out-alt mr-1"></i> Ganti Nomor / Logout WA
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light py-2 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt text-success mr-1"></i> Sesi disimpan secara lokal & terenkripsi pada server.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Panduan & Tips Keamanan -->
+                <div class="col-xl-7 col-lg-6">
+                    <!-- Panduan Scan -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 bg-white border-bottom">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-list-ol mr-2 text-success"></i>
+                                Cara Menautkan Perangkat (Scan QR)
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="media mb-3 pb-3 border-bottom">
+                                <div class="badge badge-success badge-pill p-2 mr-3 font-weight-bold" style="font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">1</div>
+                                <div class="media-body">
+                                    <h6 class="mt-0 font-weight-bold text-dark mb-1">Buka Aplikasi WhatsApp di HP</h6>
+                                    <p class="text-muted small mb-0">Buka WhatsApp (WhatsApp Personal maupun WhatsApp Business) di smartphone yang akan dijadikan nomor pengirim broadcast.</p>
+                                </div>
+                            </div>
+                            <div class="media mb-3 pb-3 border-bottom">
+                                <div class="badge badge-success badge-pill p-2 mr-3 font-weight-bold" style="font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">2</div>
+                                <div class="media-body">
+                                    <h6 class="mt-0 font-weight-bold text-dark mb-1">Buka Menu Perangkat Tertaut (Linked Devices)</h6>
+                                    <p class="text-muted small mb-0">
+                                        • <strong>Android:</strong> Ketuk ikon <strong>Titik Tiga (⋮)</strong> di pojok kanan atas &gt; pilih <strong>Perangkat Tertaut</strong>.<br>
+                                        • <strong>iPhone:</strong> Buka tab <strong>Pengaturan (Settings)</strong> di pojok kanan bawah &gt; pilih <strong>Perangkat Tertaut</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="media mb-3 pb-3 border-bottom">
+                                <div class="badge badge-success badge-pill p-2 mr-3 font-weight-bold" style="font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">3</div>
+                                <div class="media-body">
+                                    <h6 class="mt-0 font-weight-bold text-dark mb-1">Ketuk "Tautkan Perangkat"</h6>
+                                    <p class="text-muted small mb-0">Buka pemindai dengan menekan tombol <strong>Tautkan Perangkat</strong>. Lakukan autentikasi sidik jari/PIN jika diminta oleh ponsel Anda.</p>
+                                </div>
+                            </div>
+                            <div class="media">
+                                <div class="badge badge-success badge-pill p-2 mr-3 font-weight-bold" style="font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">4</div>
+                                <div class="media-body">
+                                    <h6 class="mt-0 font-weight-bold text-dark mb-1">Arahkan Kamera ke QR Code</h6>
+                                    <p class="text-muted small mb-0">Arahkan kamera smartphone ke barcode QR Code di samping kiri layar hingga proses penautan selesai dan status berubah menjadi <strong>Terhubung</strong>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tips & Best Practices -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 bg-white border-bottom">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-lightbulb mr-2 text-warning"></i>
+                                Tips & FAQ WhatsApp Engine
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="font-weight-bold text-dark mb-1">
+                                            <i class="fas fa-wifi text-info mr-1"></i> Koneksi HP Tetap Aktif
+                                        </h6>
+                                        <small class="text-muted">Pastikan smartphone selalu terhubung ke jaringan internet stabil agar sesi WhatsApp Web tidak mudah terputus saat broadcast berlangsung.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="font-weight-bold text-dark mb-1">
+                                            <i class="fas fa-user-shield text-success mr-1"></i> Simulasi Anti-Banned
+                                        </h6>
+                                        <small class="text-muted">Aplikasi telah dilengkapi fitur <strong>Simulasi Mengetik</strong> (typing status) dan jeda dinamis antar pesan untuk mencegah flag spam dari WhatsApp.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="font-weight-bold text-dark mb-1">
+                                            <i class="fas fa-sync text-primary mr-1"></i> QR Code Kadaluarsa?
+                                        </h6>
+                                        <small class="text-muted">Jika QR Code kadaluarsa atau tidak terbaca oleh HP, cukup klik tombol <strong>Reload / Refresh QR</strong> di sebelah kiri.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="font-weight-bold text-dark mb-1">
+                                            <i class="fas fa-phone-alt text-danger mr-1"></i> Ingin Ganti Nomor?
+                                        </h6>
+                                        <small class="text-muted">Gunakan tombol <strong>Ganti Nomor / Logout WA</strong> untuk menghapus sesi lama dan menampilkan QR Code baru untuk nomor lain.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%- include('../templates/f_dashboard'); %>

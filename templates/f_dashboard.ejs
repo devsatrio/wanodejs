@@ -36,18 +36,110 @@
         $.post('/broadcast/dismiss-progress');
     }
 
+    function updateWaStatusUI(statusMsg, qrSrc) {
+        if (statusMsg) {
+            $('#statusAlertText').html(statusMsg);
+            if (statusMsg.includes('Ready') || statusMsg.includes('Terhubung')) {
+                $('#statusAlertText').removeClass('alert-secondary alert-warning alert-info').addClass('alert-success text-success');
+                $('#waStatusBadge').removeClass('badge-secondary badge-warning badge-danger').addClass('badge-success').html('<i class="fas fa-check-circle mr-1"></i> Terhubung');
+            } else if (statusMsg.includes('QR Code') || statusMsg.includes('scan') || statusMsg.includes('Scan')) {
+                $('#statusAlertText').removeClass('alert-secondary alert-success alert-danger').addClass('alert-warning text-dark');
+                $('#waStatusBadge').removeClass('badge-secondary badge-success badge-danger').addClass('badge-warning').html('<i class="fas fa-qrcode mr-1"></i> Menunggu Scan QR');
+            } else if (statusMsg.includes('Gagal') || statusMsg.includes('Terputus')) {
+                $('#statusAlertText').removeClass('alert-secondary alert-success alert-warning').addClass('alert-danger text-danger');
+                $('#waStatusBadge').removeClass('badge-secondary badge-success badge-warning').addClass('badge-danger').html('<i class="fas fa-exclamation-circle mr-1"></i> Terputus');
+            } else {
+                $('#statusAlertText').removeClass('alert-success alert-danger alert-warning').addClass('alert-secondary text-dark');
+                $('#waStatusBadge').removeClass('badge-success badge-danger badge-warning').addClass('badge-secondary').html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+            }
+        }
+
+        if (qrSrc) {
+            if (qrSrc.startsWith('data:image')) {
+                // Tampilan QR Code untuk discan
+                $('#qrLoadingSpinner').hide();
+                $('#waConnectedState').hide();
+                $('#imgqr').attr('src', qrSrc).fadeIn();
+            } else if (qrSrc.includes('img.jpg')) {
+                // Tampilan State Terhubung
+                $('#qrLoadingSpinner').hide();
+                $('#imgqr').hide();
+                $('#waConnectedState').fadeIn();
+            }
+        }
+    }
+
+    function reloadQrCode(force) {
+        var $icon = $('#iconReloadQr');
+        var $btn = $('#btnReloadQr');
+        $icon.addClass('fa-spin');
+        $btn.prop('disabled', true);
+
+        $('#imgqr').hide();
+        $('#waConnectedState').hide();
+        $('#qrLoadingSpinner').show();
+        $('#statusAlertText').html('<i class="fas fa-spinner fa-spin mr-1"></i> Meminta QR Code baru dari server...');
+
+        $.ajax({
+            type: 'POST',
+            url: '/wa/reload-qr',
+            data: { force: force || false },
+            success: function(response) {
+                if (response.isReady) {
+                    $('#qrLoadingSpinner').hide();
+                    $('#waConnectedState').fadeIn();
+                }
+            },
+            error: function(xhr) {
+                alert('Gagal memuat ulang QR Code: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Terjadi kesalahan server'));
+                $('#qrLoadingSpinner').hide();
+            },
+            complete: function() {
+                setTimeout(function() {
+                    $icon.removeClass('fa-spin');
+                    $btn.prop('disabled', false);
+                }, 1000);
+            }
+        });
+    }
+
+    function logoutWaSession() {
+        if (!confirm('Apakah Anda yakin ingin logout sesi WhatsApp ini untuk mengganti dengan nomor baru?')) {
+            return;
+        }
+
+        var $btn = $('#btnLogoutWa');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memutuskan...');
+        $('#imgqr').hide();
+        $('#waConnectedState').hide();
+        $('#qrLoadingSpinner').show();
+        $('#statusAlertText').html('<i class="fas fa-spinner fa-spin mr-1"></i> Memutus sesi WhatsApp lama & memuat QR baru...');
+
+        $.ajax({
+            type: 'POST',
+            url: '/wa/logout-session',
+            success: function(res) {
+                // socket akan otomatis mengirim qr baru
+            },
+            error: function(xhr) {
+                alert('Gagal logout sesi: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Terjadi kesalahan'));
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-sign-out-alt mr-1"></i> Ganti Nomor / Logout WA');
+            }
+        });
+    }
+
     function getWaCon() {
         var socket = io();
         socket.on('connect', function() {
             console.log('Connected to WebSocket server');
         });
         socket.on('msg', function(msg) {
-            $('.logs').html('<div class="alert alert-info mt-3 d-inline-block py-2 px-3">' + msg + '</div>');
+            updateWaStatusUI(msg, null);
         });
         socket.on('qr', function(src) {
-            if (src) {
-                $('#imgqr').attr('src', src).show();
-            }
+            updateWaStatusUI(null, src);
         });
         socket.on('broadcast-progress', function (data) {
             if (!data) return;
@@ -83,9 +175,22 @@
             $('#globalBroadcastAlert').slideUp();
         });
     }
-    var jumlahpenerima = 0;
+
     $(document).ready(function () {
-       getWaCon();
+        getWaCon();
+
+        // 1. Cek status awal WhatsApp langsung dari API
+        $.ajax({
+            type: 'GET',
+            url: '/wa/status-qr',
+            success: function(data) {
+                if (data) {
+                    updateWaStatusUI(data.status, data.qr);
+                }
+            }
+        });
+
+        // 2. Cek status broadcast aktif
         $.ajax({
             type: 'GET',
             url: '/broadcast/active-progress',
@@ -101,6 +206,8 @@
                 }
             }
         });
+
+        // 3. Muat statistik angka dashboard
         $.ajax({
             type: 'GET',
             url: '/home/getdata',
@@ -109,36 +216,9 @@
                 $("#pendingbroadcast").html(data.broadcast_pending);
                 $("#broadcast").html(data.broadcast);
                 $("#contact").html(data.contact);
-                // generateapi();
             }
         });
     });
-    function hapusCred() {
-        $.ajax({
-            type:'post',
-            url:'/hapus-credential',
-            success:function(response){
-                if(response.sts=="1"){
-                    getWaCon();
-                }else{
-                    // alert('credential gagal dihapus! : ' + response);
-                    // getWaCon();
-                    window.open('/logout');                    
-                }
-            }
-        })
-    }
-    function generateapi() {
-        getWaCon();
-        // $.ajax({
-        //     type:'get',
-        //     url:'/generate-newapi',
-        //     success:function(response){
-        //         alert('Token baru sedang pros, tunggu sampai qr ditampilkan !');
-        //         // getWaCon();
-        //     }
-        // })
-    }
 </script>
 </body>
 

@@ -176,12 +176,12 @@ app.get('/', function (req, res) {
 app.get('/captcha', function (req, res) {
 	const captcha = svgCaptcha.create({
 		size: 4,
-		noise: 2,
+		noise: 1,
 		color: true,
-		background: '#f8f9fc',
-		width: 140,
-		height: 40,
-		fontSize: 38,
+		background: '#ffffff',
+		width: 200,
+		height: 60,
+		fontSize: 54,
 		ignoreChars: '0o1ilI'
 	});
 	req.session.captcha = captcha.text.toLowerCase();
@@ -250,37 +250,84 @@ app.get('/logout', function (req, res) {
 	req.session.username = '';
 	req.flash('info', 'Logout Sukses');
 	res.redirect('/');
-  });
-// hapus credential whatsapp
-app.post('/hapus-credential',async(req,res)=>{
-	try {
-		let fdel=fs.unlinkSync(SESSION_FILE_PATH);
-		if(fdel){
-			return res.json({
-				response:{
-					sts:'1',
-				}
-			})	
-		}else{
-			return res.json({
-				response:{
-					sts:'0',
-				}
-			})
-		}
-		res.redirect('/logout');
-	} catch (error) {
-		console.log(error);
-		return res.json({
-			response:{
-				sts:'0',
-				msg:error,
-			}
-		})
-		res.redirect('/logout');	
+});
+
+//-----------------------------------------------------------------
+app.get('/device', function (req, res) {
+	if (req.session.loggedin) {
+		return res.render('device');
+	} else {
+		req.flash('infoerror', 'Maaf, Anda harus login');
+		return res.redirect('/');
 	}
-	
-})
+});
+//-----------------------------------------------------------------
+// Status WhatsApp & QR
+app.get('/wa/status-qr', function (req, res) {
+	return res.json({
+		isReady: isClientReady,
+		qr: currentQr,
+		status: currentStatus
+	});
+});
+
+// Dedicated Reload / Refresh QR Endpoint
+app.post('/wa/reload-qr', async function (req, res) {
+	try {
+		const force = req.body.force === true || req.body.force === 'true';
+		console.log('[WA RELOAD QR TRIGGERED]', { force, isClientReady });
+		
+		if (force || !isClientReady) {
+			isClientReady = false;
+			currentStatus = 'Sedang me-refresh engine WhatsApp & membuat QR Code baru...';
+			currentQr = '';
+			io.emit('msg', currentStatus);
+			io.emit('qr', '');
+
+			try {
+				await client.destroy();
+			} catch (e) {
+				console.log('Client destroy notice:', e.message);
+			}
+			client.initialize();
+			return res.json({ success: true, message: 'Engine WhatsApp sedang di-reload. QR Code baru akan segera muncul.' });
+		} else {
+			io.emit('msg', 'WhatsApp Ready & Terhubung!');
+			io.emit('qr', currentQr || '/static/img/img.jpg');
+			return res.json({ success: true, isReady: true, message: 'WhatsApp sudah terhubung aktif!' });
+		}
+	} catch (err) {
+		console.error('[RELOAD QR ERROR]', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// Logout Sesi WhatsApp untuk Ganti Nomor
+app.post('/wa/logout-session', async function (req, res) {
+	try {
+		console.log('[WA LOGOUT SESSION TRIGGERED]');
+		isClientReady = false;
+		currentQr = '';
+		currentStatus = 'Sesi WhatsApp diputus. Memuat QR Code baru...';
+		io.emit('msg', currentStatus);
+		io.emit('qr', '');
+
+		try {
+			await client.logout();
+		} catch (e) {
+			console.log('Client logout notice:', e.message);
+			try {
+				await client.destroy();
+			} catch (e2) {}
+		}
+		client.initialize();
+		return res.json({ success: true, message: 'Sesi WhatsApp berhasil di-logout. Silakan scan QR baru.' });
+	} catch (err) {
+		console.error('[LOGOUT SESSION ERROR]', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
 module.exports={app,server,add,client,io,qrcode,fs,SESSION_FILE_PATH,session};
 
 

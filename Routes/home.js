@@ -29,6 +29,16 @@ app.get('/', function (req, res) {
 });
 
 //-----------------------------------------------------------------
+app.get('/device', function (req, res) {
+    if (req.session.loggedin) {
+        return res.render('device');
+	} else {
+        req.flash('infoerror', 'Maaf, Anda harus login');
+		return res.redirect('/');
+	}
+});
+
+//-----------------------------------------------------------------
 app.get('/edit-profile', function (req, res) {
     if (req.session.loggedin) {
 		connection.query('SELECT * FROM tb_users where id=?', [res.locals.kodeid], function(err, rows, fields){

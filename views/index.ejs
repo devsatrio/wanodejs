@@ -19,6 +19,7 @@
 
     <!-- Custom styles for this template-->
     <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/static/css/theme-green.css" rel="stylesheet">
 
 </head>
 
@@ -65,21 +66,21 @@
                                         <div class="form-group">
                                             <input type="password" name="password" class="form-control form-control-user" placeholder="Enter Password..." autocomplete="new-password" required>
                                         </div>
-                                        <div class="form-group">
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col-7 pr-2">
-                                                    <input type="text" name="captcha" id="captchaInput" class="form-control form-control-user text-uppercase font-weight-bold" placeholder="Kode Captcha..." autocomplete="off" required style="letter-spacing: 2px;">
-                                                </div>
-                                                <div class="col-5 d-flex align-items-center justify-content-between p-1 border rounded bg-light" style="border-radius: 10rem !important; height: 50px;">
-                                                    <img id="captchaImg" src="/captcha" alt="Captcha" style="height: 38px; border-radius: 8px; cursor: pointer;" title="Klik untuk ganti captcha" onclick="refreshCaptcha()">
-                                                    <button type="button" class="btn btn-sm btn-link text-primary p-0 pr-2" onclick="refreshCaptcha()" title="Ganti Captcha">
-                                                        <i class="fas fa-sync-alt" id="refreshIcon"></i>
-                                                    </button>
-                                                </div>
+                                        <div class="form-group mb-3">
+                                            <label class="small text-muted font-weight-bold mb-1 d-flex align-items-center justify-content-between">
+                                                <span><i class="fas fa-shield-alt text-success mr-1"></i> Kode Keamanan (Captcha)</span>
+                                                <small class="text-muted">Klik gambar untuk ganti</small>
+                                            </label>
+                                            <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-white shadow-sm mb-2" style="border-radius: 10px !important;">
+                                                <img id="captchaImg" src="/captcha" alt="Captcha" style="height: 56px; width: 190px; object-fit: contain; cursor: pointer; border-radius: 6px;" title="Klik untuk ganti kode captcha" onclick="refreshCaptcha()">
+                                                <button type="button" class="btn btn-sm btn-outline-success font-weight-bold ml-2 py-2 px-3" onclick="refreshCaptcha()" title="Ganti Captcha" style="border-radius: 8px;">
+                                                    <i class="fas fa-sync-alt mr-1" id="refreshIcon"></i> Ganti
+                                                </button>
                                             </div>
+                                            <input type="text" name="captcha" id="captchaInput" class="form-control form-control-user text-uppercase font-weight-bold text-center" placeholder="Masukkan 4 digit kode di atas" autocomplete="off" required style="letter-spacing: 4px; font-size: 17px; height: 48px;">
                                         </div>
-                                        <button type="submit" class="btn btn-success btn-user btn-block">
-                                            Login
+                                        <button type="submit" class="btn btn-success btn-user btn-block font-weight-bold py-2 shadow-sm" style="font-size: 16px;">
+                                            <i class="fas fa-sign-in-alt mr-1"></i> Login
                                         </button>
                                     </form>
                                 </div>
