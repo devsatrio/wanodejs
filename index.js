@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('http');
 const {connection}=require('./config/db');
 // const wasend=require('./sendwhatsapp');
@@ -22,6 +23,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 var flash = require('express-flash');
+const svgCaptcha = require('svg-captcha');
 
 // ------------------------------------------------------------------
 const fs = require('fs');
@@ -140,7 +142,7 @@ client.initialize();
 //--------------------------------------------------------------------
 app.use(flash());
 app.use(session({
-	secret: 'secret',
+	secret: process.env.SESSION_SECRET || 'wanode_session_secret_default',
 	resave: true,
 	saveUninitialized: true
 }));
@@ -166,7 +168,25 @@ app.set('view engine', 'ejs');
 
 //-----------------------------------------------------------------
 app.get('/', function (req, res) {
-  res.render('index');
+	res.render('index');
+});
+
+//-----------------------------------------------------------------
+// Endpoint Captcha SVG
+app.get('/captcha', function (req, res) {
+	const captcha = svgCaptcha.create({
+		size: 4,
+		noise: 2,
+		color: true,
+		background: '#f8f9fc',
+		width: 140,
+		height: 40,
+		fontSize: 38,
+		ignoreChars: '0o1ilI'
+	});
+	req.session.captcha = captcha.text.toLowerCase();
+	res.type('svg');
+	res.status(200).send(captcha.data);
 });
 
 //-----------------------------------------------------------------
@@ -176,38 +196,51 @@ app.use('/static', express.static('public'))
 app.post('/auth', function(request, response) {
 	var username = request.body.username;
 	var password = request.body.password;
+	var captchaInput = (request.body.captcha || '').trim().toLowerCase();
+	var sessionCaptcha = (request.session.captcha || '').toLowerCase();
+
+	// Validasi Captcha
+	if (!captchaInput || !sessionCaptcha || captchaInput !== sessionCaptcha) {
+		request.session.captcha = null;
+		request.flash('infoerror', 'Kode Captcha salah! Silakan coba lagi.');
+		return response.redirect('/');
+	}
+
+	// Reset captcha setelah dicek
+	request.session.captcha = null;
+
 	if (username && password) {
 		connection.query('SELECT * FROM tb_users WHERE username = ? limit 1', [username], function(error, results, fields) {
-			if (results.length > 0) {
-				var level='';
-				var userpass='';
-				var kodeid='';
-				for (index = 0; index < results.length; ++index) {
-					level = results[index]['level'];
-					userpass = results[index]['password'];
-					kodeid = results[index]['id'];
-				}
+			if (error) {
+				console.error('[LOGIN DB ERROR]', error);
+				request.flash('infoerror', 'Terjadi kesalahan sistem');
+				return response.redirect('/');
+			}
+			if (results && results.length > 0) {
+				var userRow = results[0];
+				var userpass = userRow['password'];
+				var level = userRow['level'];
+				var kodeid = userRow['id'];
+
 				var comparepass = bcrypt.compareSync(password, userpass);
-				if(comparepass===true){
+				if (comparepass === true) {
 					request.session.loggedin = true;
 					request.session.username = username;
 					request.session.level = level;
 					request.session.kodeid = kodeid;
-					response.redirect('/home');
-				}else{
-					request.flash('infoerror', 'Incorrect Password!');
-					response.redirect('/');
+					return response.redirect('/home');
+				} else {
+					request.flash('infoerror', 'Password salah!');
+					return response.redirect('/');
 				}
 			} else {
-				request.flash('infoerror', 'Incorrect Username!');
-				response.redirect('/');
+				request.flash('infoerror', 'Username tidak ditemukan!');
+				return response.redirect('/');
 			}			
-			response.end();
 		});
 	} else {
-		request.flash('infoerror', 'Please enter Username and Password!');
-		response.redirect('/');
-		response.end();
+		request.flash('infoerror', 'Silakan masukkan Username dan Password!');
+		return response.redirect('/');
 	}
 });
 

@@ -1,0 +1,88 @@
+<%- include('../templates/h'); %>
+<%- include('../templates/n'); %>
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Master User</h1>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Hasil Pencarian User</h6>
+            <div class="dropdown no-arrow">
+                <form class="form-inline" action="/users/search" method="GET">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <label class="sr-only">Cari</label>
+                        <input type="text" class="form-control" placeholder="Nama / Username / Level" name="search" value="<%= pencarian || '' %>" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search"></i> Cari</button>
+                    <a href="/users/add" class="ml-2">
+                        <button type="button" class="btn btn-success mb-2"><i class="fas fa-plus"></i> Tambah</button>
+                    </a>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <% if (messages.info) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= messages.info %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+            <% if (messages.infoerror) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= messages.infoerror %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+            <% var keyword = (typeof pencarian !== 'undefined' && pencarian) ? pencarian : ''; %>
+            <div class="table-responsive">
+                <p class="mb-3">Hasil pencarian untuk "<b><%= keyword %></b>" (<%= (typeof datauser !== 'undefined' && datauser) ? datauser.length : 0 %> data ditemukan):</p>
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">No</th>
+                            <th>Nama</th>
+                            <th>Username</th>
+                            <th style="width: 150px;" class="text-center">Level</th>
+                            <th style="width: 130px;" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (!datauser || datauser.length === 0) { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-search fa-2x mb-2 d-block text-gray-400"></i>
+                                    Tidak ada data user yang cocok dengan kata kunci "<b><%= pencarian %></b>".
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% var number = 1; %>
+                            <% datauser.forEach(function(row) { %>
+                                <tr>
+                                    <td class="text-center align-middle"><%= number %></td>
+                                    <td class="align-middle font-weight-bold"><%= row.nama %></td>
+                                    <td class="align-middle"><%= row.username %></td>
+                                    <td class="text-center align-middle">
+                                        <% if (row.level === 'Super Admin') { %>
+                                            <span class="badge badge-primary px-2 py-1"><i class="fas fa-shield-alt mr-1"></i> Super Admin</span>
+                                        <% } else { %>
+                                            <span class="badge badge-info px-2 py-1"><%= row.level || 'User' %></span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a href="/users/<%= row.id %>/edit" class="btn btn-sm btn-success" title="Edit"><i class="fa fa-wrench"></i></a>
+                                        <a href="/users/<%= row.id %>/hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus data user ini?')" class="btn btn-sm btn-danger" title="Hapus"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <% number++; %>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+                <a href="/users" class="btn btn-secondary mt-2"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Semua User</a>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('../templates/f'); %>

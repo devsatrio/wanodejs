@@ -1,5 +1,4 @@
-// var express = require('express');
-// var app = express();
+require('dotenv').config();
 const {server,add,app,client,io,qrcode,fs,SESSION_FILE_PATH,session}=require('./index');
 const sendwa=require('./sendwhatsapp');
 const broadcast = require('./Routes/broadcast');
@@ -25,6 +24,8 @@ app.use('/wa',wabroadcast)
 app.get('/generate-newapi', function (req, res) {
 	res.json({ message: 'WhatsApp Engine is running' });
 });
-server.listen(8000, function () {
-    console.log('Listening to Port 8000');
-  });
+
+const PORT = process.env.PORT || 2021;
+server.listen(PORT, '0.0.0.0', function () {
+    console.log(`Listening to Port ${PORT}`);
+});

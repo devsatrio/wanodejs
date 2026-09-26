@@ -70,14 +70,21 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <%if (messages.info) { %>
+                    <% if (messages.info) { %>
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <%= messages.info %>
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
-                        <% } %>
+                    <% } %>
+                    <% 
+                        var currentOffset = (typeof offset !== 'undefined') ? offset : 0;
+                        var listProducts = (typeof products !== 'undefined' && products) ? products : [];
+                        var totalData = (typeof total_data !== 'undefined') ? total_data : listProducts.length;
+                        var totalPages = (typeof total_pages !== 'undefined') ? total_pages : 1;
+                        var pageNumber = (typeof page_number !== 'undefined') ? page_number : 1;
+                    %>
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover" id="dataTableContact" width="100%" cellspacing="0">
                                 <thead class="thead-light">
@@ -92,7 +99,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (!products || products.length === 0) { %>
+                                    <% if (!listProducts || listProducts.length === 0) { %>
                                         <tr>
                                             <td colspan="7" class="text-center text-muted py-4">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-400"></i>
@@ -100,8 +107,8 @@
                                             </td>
                                         </tr>
                                     <% } else { %>
-                                        <% var number = offset + 1; %>
-                                        <% products.forEach(function(row) { %>
+                                        <% var number = currentOffset + 1; %>
+                                        <% listProducts.forEach(function(row) { %>
                                             <tr>
                                                 <td class="text-center align-middle">
                                                     <%= number %>
@@ -159,33 +166,33 @@
                         <!-- Pagination Section -->
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top">
                             <div class="text-muted small mb-2 mb-md-0">
-                                Menampilkan <strong><%= products.length > 0 ? offset + 1 : 0 %></strong> - <strong><%= Math.min(offset + products.length, total_data) %></strong> dari <strong><%= total_data %></strong> data
-                                <% if (total_pages > 1) { %>
-                                    (Halaman <strong><%= page_number %></strong> dari <strong><%= total_pages %></strong>)
+                                Menampilkan <strong><%= listProducts.length > 0 ? currentOffset + 1 : 0 %></strong> - <strong><%= Math.min(currentOffset + listProducts.length, totalData) %></strong> dari <strong><%= totalData %></strong> data
+                                <% if (totalPages > 1) { %>
+                                    (Halaman <strong><%= pageNumber %></strong> dari <strong><%= totalPages %></strong>)
                                 <% } %>
                             </div>
 
-                            <% if (total_pages > 1) { %>
+                            <% if (totalPages > 1) { %>
                                 <nav aria-label="Broadcast Page Navigation">
                                     <ul class="pagination pagination-sm mb-0">
                                         <!-- First -->
-                                        <li class="page-item <%= page_number <= 1 ? 'disabled' : '' %>">
+                                        <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
                                             <a class="page-link" href="/broadcast?page=1" title="Halaman Pertama">
                                                 <i class="fas fa-angle-double-left"></i>
                                             </a>
                                         </li>
 
                                         <!-- Prev -->
-                                        <li class="page-item <%= page_number <= 1 ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= page_number - 1 %>" title="Sebelumnya">
+                                        <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
+                                            <a class="page-link" href="/broadcast?page=<%= pageNumber - 1 %>" title="Sebelumnya">
                                                 <i class="fas fa-angle-left"></i>
                                             </a>
                                         </li>
 
                                         <!-- Numbered Pages with Ellipsis -->
                                         <% 
-                                            var startPage = Math.max(1, page_number - 2);
-                                            var endPage = Math.min(total_pages, page_number + 2);
+                                            var startPage = Math.max(1, pageNumber - 2);
+                                            var endPage = Math.min(totalPages, pageNumber + 2);
 
                                             if (startPage > 1) { %>
                                                 <li class="page-item"><a class="page-link" href="/broadcast?page=1">1</a></li>
@@ -195,28 +202,28 @@
                                             <% } %>
 
                                         <% for (var i = startPage; i <= endPage; i++) { %>
-                                            <li class="page-item <%= page_number === i ? 'active' : '' %>">
+                                            <li class="page-item <%= pageNumber === i ? 'active' : '' %>">
                                                 <a class="page-link" href="/broadcast?page=<%= i %>"><%= i %></a>
                                             </li>
                                         <% } %>
 
-                                        <% if (endPage < total_pages) { %>
-                                            <% if (endPage < total_pages - 1) { %>
+                                        <% if (endPage < totalPages) { %>
+                                            <% if (endPage < totalPages - 1) { %>
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                             <% } %>
-                                            <li class="page-item"><a class="page-link" href="/broadcast?page=<%= total_pages %>"><%= total_pages %></a></li>
+                                            <li class="page-item"><a class="page-link" href="/broadcast?page=<%= totalPages %>"><%= totalPages %></a></li>
                                         <% } %>
 
                                         <!-- Next -->
-                                        <li class="page-item <%= page_number >= total_pages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= page_number + 1 %>" title="Selanjutnya">
+                                        <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                            <a class="page-link" href="/broadcast?page=<%= pageNumber + 1 %>" title="Selanjutnya">
                                                 <i class="fas fa-angle-right"></i>
                                             </a>
                                         </li>
 
                                         <!-- Last -->
-                                        <li class="page-item <%= page_number >= total_pages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= total_pages %>" title="Halaman Terakhir">
+                                        <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                            <a class="page-link" href="/broadcast?page=<%= totalPages %>" title="Halaman Terakhir">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </a>
                                         </li>

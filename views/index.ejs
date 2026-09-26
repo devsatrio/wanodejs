@@ -65,6 +65,19 @@
                                         <div class="form-group">
                                             <input type="password" name="password" class="form-control form-control-user" placeholder="Enter Password..." autocomplete="new-password" required>
                                         </div>
+                                        <div class="form-group">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-7 pr-2">
+                                                    <input type="text" name="captcha" id="captchaInput" class="form-control form-control-user text-uppercase font-weight-bold" placeholder="Kode Captcha..." autocomplete="off" required style="letter-spacing: 2px;">
+                                                </div>
+                                                <div class="col-5 d-flex align-items-center justify-content-between p-1 border rounded bg-light" style="border-radius: 10rem !important; height: 50px;">
+                                                    <img id="captchaImg" src="/captcha" alt="Captcha" style="height: 38px; border-radius: 8px; cursor: pointer;" title="Klik untuk ganti captcha" onclick="refreshCaptcha()">
+                                                    <button type="button" class="btn btn-sm btn-link text-primary p-0 pr-2" onclick="refreshCaptcha()" title="Ganti Captcha">
+                                                        <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <button type="submit" class="btn btn-success btn-user btn-block">
                                             Login
                                         </button>
@@ -90,6 +103,18 @@
 
     <!-- Custom scripts for all pages-->
     <script src="/static/js/sb-admin-2.min.js"></script>
+
+    <script>
+        function refreshCaptcha() {
+            var $icon = $('#refreshIcon');
+            $icon.addClass('fa-spin');
+            $('#captchaImg').attr('src', '/captcha?t=' + new Date().getTime());
+            setTimeout(function () {
+                $icon.removeClass('fa-spin');
+            }, 500);
+            $('#captchaInput').val('').focus();
+        }
+    </script>
 
 </body>
 

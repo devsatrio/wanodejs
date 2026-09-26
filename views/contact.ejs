@@ -27,47 +27,122 @@
                     </button>
                 </div>
             <% } %>
+            <% 
+                var currentOffset = (typeof offset !== 'undefined') ? offset : 0;
+                var listContact = (typeof products !== 'undefined' && products) ? products : [];
+                var totalData = (typeof total_data !== 'undefined') ? total_data : listContact.length;
+                var totalPages = (typeof total_pages !== 'undefined') ? total_pages : 1;
+                var pageNumber = (typeof page_number !== 'undefined') ? page_number : 1;
+            %>
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTableContact" width="100%" cellspacing="0">
-                    <thead>
+                <table class="table table-bordered table-hover" id="dataTableContact" width="100%" cellspacing="0">
+                    <thead class="thead-light">
                         <tr>
-                            <th>No</th>
+                            <th style="width: 50px;" class="text-center">No</th>
                             <th>Nama</th>
-                            <th>No. Telp</th>
-                            <th>No. RM</th>
+                            <th style="width: 150px;">No. Telp</th>
+                            <th style="width: 120px;">No. RM</th>
                             <th>Keterangan</th>
-                            <th class="text-center">Aksi</th>
+                            <th style="width: 130px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% var number = offset+ 1; %>
-                        <% products.forEach(function(row) { %>
+                        <% if (!listContact || listContact.length === 0) { %>
                             <tr>
-                                <td><%= number %></td>
-                                <td><%= row.nama %></td>
-                                <td><%= row.telp %></td>
-                                <td><%= row.no_rm %></td>
-                                <td><%= row.deskripsi %></td>
-                                <td class="text-center">
-                                    <a href="/contact/<%= row.id %>/edit" class="btn btn-sm btn-success"><i class="fa fa-wrench"></i></a>
-                                    <a href="/contact/<%= row.id %>/hapus" onclick="return confirm('Hapus Data ?')" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></a>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-address-book fa-2x mb-2 d-block text-gray-400"></i>
+                                    Belum ada data kontak.
                                 </td>
                             </tr>
-                        <%  number++; %>
-                        <% }); %>
+                        <% } else { %>
+                            <% var number = currentOffset + 1; %>
+                            <% listContact.forEach(function(row) { %>
+                                <tr>
+                                    <td class="text-center align-middle"><%= number %></td>
+                                    <td class="align-middle font-weight-bold"><%= row.nama %></td>
+                                    <td class="align-middle"><%= row.telp %></td>
+                                    <td class="align-middle"><%= row.no_rm || '-' %></td>
+                                    <td class="align-middle"><%= row.deskripsi || '-' %></td>
+                                    <td class="text-center align-middle">
+                                        <a href="/contact/<%= row.id %>/edit" class="btn btn-sm btn-success" title="Edit"><i class="fa fa-wrench"></i></a>
+                                        <a href="/contact/<%= row.id %>/hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus data kontak ini?')" class="btn btn-sm btn-danger" title="Hapus"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <% number++; %>
+                            <% }); %>
+                        <% } %>
                     </tbody>
                 </table>
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination">
-                        <li class="page-item"><a class="page-link" href="/contact?page=1">First</a></li>
-                        <% for(var i=0; i < products_page_count+1; i++) { %>
-                            <li class="page-item"><a class="page-link" href="/contact?page=<%= i+1 %>"><%= i+1 %></a></li>
-                         <% } %>
-                         <li class="page-item"><a class="page-link" href="/contact?page=<%= products_page_count+1 %>">Last</a></li>
-                    </ul>
-                  </nav>
             </div>
-            <span>Total Data <%= total_data; %> </span>
+
+            <!-- Pagination Section -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div class="text-muted small mb-2 mb-md-0">
+                    Menampilkan <strong><%= listContact.length > 0 ? currentOffset + 1 : 0 %></strong> - <strong><%= Math.min(currentOffset + listContact.length, totalData) %></strong> dari <strong><%= totalData %></strong> data kontak
+                    <% if (totalPages > 1) { %>
+                        (Halaman <strong><%= pageNumber %></strong> dari <strong><%= totalPages %></strong>)
+                    <% } %>
+                </div>
+
+                <% if (totalPages > 1) { %>
+                    <nav aria-label="Contact Page Navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- First -->
+                            <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/contact?page=1" title="Halaman Pertama">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Prev -->
+                            <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/contact?page=<%= pageNumber - 1 %>" title="Sebelumnya">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Numbered Pages with Ellipsis -->
+                            <% 
+                                var startPage = Math.max(1, pageNumber - 2);
+                                var endPage = Math.min(totalPages, pageNumber + 2);
+
+                                if (startPage > 1) { %>
+                                    <li class="page-item"><a class="page-link" href="/contact?page=1">1</a></li>
+                                    <% if (startPage > 2) { %>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <% } %>
+                                <% } %>
+
+                            <% for (var i = startPage; i <= endPage; i++) { %>
+                                <li class="page-item <%= pageNumber === i ? 'active' : '' %>">
+                                    <a class="page-link" href="/contact?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+
+                            <% if (endPage < totalPages) { %>
+                                <% if (endPage < totalPages - 1) { %>
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <% } %>
+                                <li class="page-item"><a class="page-link" href="/contact?page=<%= totalPages %>"><%= totalPages %></a></li>
+                            <% } %>
+
+                            <!-- Next -->
+                            <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/contact?page=<%= pageNumber + 1 %>" title="Selanjutnya">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+
+                            <!-- Last -->
+                            <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/contact?page=<%= totalPages %>" title="Halaman Terakhir">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                <% } %>
+            </div>
         </div>
     </div>
 

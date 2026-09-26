@@ -1,18 +1,25 @@
 <%- include('../templates/h'); %>
 <%- include('../templates/n'); %>
 <div class="container-fluid">
-    <h1 class="h3 mb-2 text-gray-800">User</h1>
+    <h1 class="h3 mb-2 text-gray-800">Master User</h1>
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">List Data User</h6>
             <div class="dropdown no-arrow">
-                <a class="btn btn-primary" href="/users/add">
-                    <i class="fas fa-plus fa-sm fa-fw text-gray-400"></i> Tambah Data
-                </a>
+                <form class="form-inline" action="/users/search" method="GET">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <label class="sr-only">Cari</label>
+                        <input type="text" class="form-control" placeholder="Nama / Username / Level" name="search" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search"></i> Cari</button>
+                    <a href="/users/add" class="ml-2">
+                        <button type="button" class="btn btn-success mb-2"><i class="fas fa-plus"></i> Tambah</button>
+                    </a>
+                </form>
             </div>
         </div>
         <div class="card-body">
-            <%if (messages.info) { %>
+            <% if (messages.info) { %>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <%= messages.info %>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -20,37 +27,135 @@
                     </button>
                 </div>
             <% } %>
+            <% if (messages.infoerror) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= messages.infoerror %>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <% } %>
+            <% 
+                var currentOffset = (typeof offset !== 'undefined') ? offset : 0;
+                var listUser = (typeof datauser !== 'undefined' && datauser) ? datauser : [];
+                var totalData = (typeof total_data !== 'undefined') ? total_data : listUser.length;
+                var totalPages = (typeof total_pages !== 'undefined') ? total_pages : 1;
+                var pageNumber = (typeof page_number !== 'undefined') ? page_number : 1;
+            %>
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
                         <tr>
-                            <th>No</th>
+                            <th style="width: 50px;" class="text-center">No</th>
                             <th>Nama</th>
                             <th>Username</th>
-                            <th>Level</th>
-                            <th class="text-center">Aksi</th>
+                            <th style="width: 150px;" class="text-center">Level</th>
+                            <th style="width: 130px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% var number = 1; %>
-                        <% datauser.forEach(function(row) { %>
+                        <% if (!listUser || listUser.length === 0) { %>
                             <tr>
-                                <td><%= number %></td>
-                                <td><%= row.nama %></td>
-                                <td><%= row.username %></td>
-                                <td><%= row.level %></td>
-                                <td class="text-center">
-                                    <a href="/users/<%= row.id %>/edit" class="btn btn-sm btn-success"><i class="fa fa-wrench"></i></a>
-                                    <a href="/users/<%= row.id %>/hapus" onclick="return confirm('Hapus Data ?')" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></a>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-users-slash fa-2x mb-2 d-block text-gray-400"></i>
+                                    Belum ada data user.
                                 </td>
                             </tr>
-                        <%  number++; %>
-                        <% }); %>
+                        <% } else { %>
+                            <% var number = currentOffset + 1; %>
+                            <% listUser.forEach(function(row) { %>
+                                <tr>
+                                    <td class="text-center align-middle"><%= number %></td>
+                                    <td class="align-middle font-weight-bold"><%= row.nama %></td>
+                                    <td class="align-middle"><%= row.username %></td>
+                                    <td class="text-center align-middle">
+                                        <% if (row.level === 'Super Admin') { %>
+                                            <span class="badge badge-primary px-2 py-1"><i class="fas fa-shield-alt mr-1"></i> Super Admin</span>
+                                        <% } else { %>
+                                            <span class="badge badge-info px-2 py-1"><%= row.level || 'User' %></span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a href="/users/<%= row.id %>/edit" class="btn btn-sm btn-success" title="Edit"><i class="fa fa-wrench"></i></a>
+                                        <a href="/users/<%= row.id %>/hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus data user ini?')" class="btn btn-sm btn-danger" title="Hapus"><i class="fa fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <% number++; %>
+                            <% }); %>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Section -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div class="text-muted small mb-2 mb-md-0">
+                    Menampilkan <strong><%= listUser.length > 0 ? currentOffset + 1 : 0 %></strong> - <strong><%= Math.min(currentOffset + listUser.length, totalData) %></strong> dari <strong><%= totalData %></strong> data user
+                    <% if (totalPages > 1) { %>
+                        (Halaman <strong><%= pageNumber %></strong> dari <strong><%= totalPages %></strong>)
+                    <% } %>
+                </div>
+
+                <% if (totalPages > 1) { %>
+                    <nav aria-label="User Page Navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- First -->
+                            <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/users?page=1" title="Halaman Pertama">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Prev -->
+                            <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/users?page=<%= pageNumber - 1 %>" title="Sebelumnya">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Numbered Pages with Ellipsis -->
+                            <% 
+                                var startPage = Math.max(1, pageNumber - 2);
+                                var endPage = Math.min(totalPages, pageNumber + 2);
+
+                                if (startPage > 1) { %>
+                                    <li class="page-item"><a class="page-link" href="/users?page=1">1</a></li>
+                                    <% if (startPage > 2) { %>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <% } %>
+                                <% } %>
+
+                            <% for (var i = startPage; i <= endPage; i++) { %>
+                                <li class="page-item <%= pageNumber === i ? 'active' : '' %>">
+                                    <a class="page-link" href="/users?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+
+                            <% if (endPage < totalPages) { %>
+                                <% if (endPage < totalPages - 1) { %>
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <% } %>
+                                <li class="page-item"><a class="page-link" href="/users?page=<%= totalPages %>"><%= totalPages %></a></li>
+                            <% } %>
+
+                            <!-- Next -->
+                            <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/users?page=<%= pageNumber + 1 %>" title="Selanjutnya">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+
+                            <!-- Last -->
+                            <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/users?page=<%= totalPages %>" title="Halaman Terakhir">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                <% } %>
+            </div>
         </div>
     </div>
-
 </div>
 <%- include('../templates/f'); %>
