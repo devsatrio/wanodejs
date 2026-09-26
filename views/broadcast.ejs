@@ -53,26 +53,104 @@
             </div>
 
             <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">List Data Broadcast</h6>
-                    <div class="dropdown no-arrow">
-                        <form class="form-inline" action="/broadcast/search" method="GET">
-                            <div class="form-group mx-sm-3 mb-2">
-                              <label class="sr-only">Password</label>
-                              <input type="text" class="form-control" placeholder="Nama Broadcast / Kode" name="search" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search"></i> Cari</button>
-                           <a href="/broadcast/add" class="ml-2">
-                                <button type="button" class="btn btn-success mb-2"><i class="fas fa-plus"></i> Add</button>
-                            </a>
-                          </form>
-                        
-                    </div>
+                <div class="card-header py-3 bg-white border-bottom d-flex flex-wrap align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-envelope mr-1"></i> List Data Broadcast
+                    </h6>
+                    <a href="/broadcast/add" class="btn btn-success btn-sm font-weight-bold shadow-sm">
+                        <i class="fas fa-plus mr-1"></i> Buat Broadcast Baru
+                    </a>
                 </div>
+
+                <!-- Filter & Pencarian Bar -->
+                <div class="card-body bg-light border-bottom py-3">
+                    <form action="/broadcast" method="GET" class="form-row align-items-end" id="filterBroadcastForm">
+                        <!-- Search Keyword -->
+                        <div class="col-lg-3 col-md-6 mb-2">
+                            <label class="small font-weight-bold text-dark mb-1">
+                                <i class="fas fa-search text-muted mr-1"></i> Kata Kunci
+                            </label>
+                            <input type="text" class="form-control form-control-sm" name="search" placeholder="Nama Broadcast / Kode..." value="<%= (typeof filter !== 'undefined' && filter) ? filter.search : '' %>">
+                        </div>
+
+                        <!-- Tgl Kirim Awal -->
+                        <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                            <label class="small font-weight-bold text-dark mb-1">
+                                <i class="fas fa-calendar-alt text-muted mr-1"></i> Tgl Kirim Dari
+                            </label>
+                            <input type="date" class="form-control form-control-sm" name="tgl_awal" value="<%= (typeof filter !== 'undefined' && filter) ? filter.tgl_awal : '' %>">
+                        </div>
+
+                        <!-- Tgl Kirim Akhir -->
+                        <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                            <label class="small font-weight-bold text-dark mb-1">
+                                <i class="fas fa-calendar-alt text-muted mr-1"></i> Sampai Tgl
+                            </label>
+                            <input type="date" class="form-control form-control-sm" name="tgl_akhir" value="<%= (typeof filter !== 'undefined' && filter) ? filter.tgl_akhir : '' %>">
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                            <label class="small font-weight-bold text-dark mb-1">
+                                <i class="fas fa-filter text-muted mr-1"></i> Status
+                            </label>
+                            <select name="status" class="form-control form-control-sm">
+                                <option value="">-- Semua Status --</option>
+                                <option value="terkirim" <%= (typeof filter !== 'undefined' && filter && filter.status === 'terkirim') ? 'selected' : '' %>>Terkirim</option>
+                                <option value="disimpan" <%= (typeof filter !== 'undefined' && filter && filter.status === 'disimpan') ? 'selected' : '' %>>Disimpan (Pending)</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="col-lg-3 col-md-8 col-sm-6 mb-2 d-flex">
+                            <button type="submit" class="btn btn-sm btn-primary font-weight-bold mr-1 flex-grow-1 shadow-sm">
+                                <i class="fas fa-filter mr-1"></i> Filter
+                            </button>
+                            <a href="/broadcast" class="btn btn-sm btn-outline-secondary font-weight-bold shadow-sm" title="Reset Filter">
+                                <i class="fas fa-undo mr-1"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Active Filter Badges -->
+                    <% 
+                        var hasFilter = (typeof filter !== 'undefined' && filter) && (filter.search || filter.status || filter.tgl_awal || filter.tgl_akhir);
+                        if (hasFilter) { 
+                    %>
+                        <div class="mt-2 pt-2 border-top d-flex align-items-center flex-wrap small">
+                            <span class="text-muted mr-2 font-weight-bold"><i class="fas fa-info-circle mr-1"></i> Filter Aktif:</span>
+                            <% if (filter.search) { %>
+                                <span class="badge badge-primary mr-2 mb-1 py-1 px-2">Cari: "<%= filter.search %>"</span>
+                            <% } %>
+                            <% if (filter.tgl_awal && filter.tgl_akhir) { %>
+                                <span class="badge badge-info mr-2 mb-1 py-1 px-2">Tgl: <%= filter.tgl_awal %> s/d <%= filter.tgl_akhir %></span>
+                            <% } else if (filter.tgl_awal) { %>
+                                <span class="badge badge-info mr-2 mb-1 py-1 px-2">Tgl &gt;= <%= filter.tgl_awal %></span>
+                            <% } else if (filter.tgl_akhir) { %>
+                                <span class="badge badge-info mr-2 mb-1 py-1 px-2">Tgl &lt;= <%= filter.tgl_akhir %></span>
+                            <% } %>
+                            <% if (filter.status) { %>
+                                <span class="badge badge-<%= filter.status === 'terkirim' ? 'success' : 'secondary' %> mr-2 mb-1 py-1 px-2">Status: <%= filter.status === 'terkirim' ? 'Terkirim' : 'Disimpan' %></span>
+                            <% } %>
+                            <a href="/broadcast" class="text-danger ml-auto font-weight-bold">
+                                <i class="fas fa-times-circle mr-1"></i> Hapus Filter
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+
                 <div class="card-body">
                     <% if (messages.info) { %>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <%= messages.info %>
+                        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="fas fa-check-circle mr-1"></i> <%= messages.info %>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    <% } %>
+                    <% if (messages.infoerror) { %>
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="fas fa-exclamation-triangle mr-1"></i> <%= messages.infoerror %>
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
@@ -84,6 +162,7 @@
                         var totalData = (typeof total_data !== 'undefined') ? total_data : listProducts.length;
                         var totalPages = (typeof total_pages !== 'undefined') ? total_pages : 1;
                         var pageNumber = (typeof page_number !== 'undefined') ? page_number : 1;
+                        var qStr = (typeof queryString !== 'undefined') ? queryString : '';
                     %>
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover" id="dataTableContact" width="100%" cellspacing="0">
@@ -103,7 +182,7 @@
                                         <tr>
                                             <td colspan="7" class="text-center text-muted py-4">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-400"></i>
-                                                Belum ada data broadcast.
+                                                Tidak ada data broadcast yang sesuai dengan kriteria filter.
                                             </td>
                                         </tr>
                                     <% } else { %>
@@ -177,14 +256,14 @@
                                     <ul class="pagination pagination-sm mb-0">
                                         <!-- First -->
                                         <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=1" title="Halaman Pertama">
+                                            <a class="page-link" href="/broadcast?page=1<%= qStr %>" title="Halaman Pertama">
                                                 <i class="fas fa-angle-double-left"></i>
                                             </a>
                                         </li>
 
                                         <!-- Prev -->
                                         <li class="page-item <%= pageNumber <= 1 ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= pageNumber - 1 %>" title="Sebelumnya">
+                                            <a class="page-link" href="/broadcast?page=<%= pageNumber - 1 %><%= qStr %>" title="Sebelumnya">
                                                 <i class="fas fa-angle-left"></i>
                                             </a>
                                         </li>
@@ -195,7 +274,7 @@
                                             var endPage = Math.min(totalPages, pageNumber + 2);
 
                                             if (startPage > 1) { %>
-                                                <li class="page-item"><a class="page-link" href="/broadcast?page=1">1</a></li>
+                                                <li class="page-item"><a class="page-link" href="/broadcast?page=1<%= qStr %>">1</a></li>
                                                 <% if (startPage > 2) { %>
                                                     <li class="page-item disabled"><span class="page-link">...</span></li>
                                                 <% } %>
@@ -203,7 +282,7 @@
 
                                         <% for (var i = startPage; i <= endPage; i++) { %>
                                             <li class="page-item <%= pageNumber === i ? 'active' : '' %>">
-                                                <a class="page-link" href="/broadcast?page=<%= i %>"><%= i %></a>
+                                                <a class="page-link" href="/broadcast?page=<%= i %><%= qStr %>"><%= i %></a>
                                             </li>
                                         <% } %>
 
@@ -211,19 +290,19 @@
                                             <% if (endPage < totalPages - 1) { %>
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                             <% } %>
-                                            <li class="page-item"><a class="page-link" href="/broadcast?page=<%= totalPages %>"><%= totalPages %></a></li>
+                                            <li class="page-item"><a class="page-link" href="/broadcast?page=<%= totalPages %><%= qStr %>"><%= totalPages %></a></li>
                                         <% } %>
 
                                         <!-- Next -->
                                         <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= pageNumber + 1 %>" title="Selanjutnya">
+                                            <a class="page-link" href="/broadcast?page=<%= pageNumber + 1 %><%= qStr %>" title="Selanjutnya">
                                                 <i class="fas fa-angle-right"></i>
                                             </a>
                                         </li>
 
                                         <!-- Last -->
                                         <li class="page-item <%= pageNumber >= totalPages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/broadcast?page=<%= totalPages %>" title="Halaman Terakhir">
+                                            <a class="page-link" href="/broadcast?page=<%= totalPages %><%= qStr %>" title="Halaman Terakhir">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </a>
                                         </li>

@@ -250,12 +250,43 @@ app.get('/', function (req, res) {
             page = 1;
         }
 
-        const countQuery = "SELECT COUNT(*) AS total FROM tb_broadcast";
-        connection.query(countQuery, function (error, countResult) {
+        const search = (req.query.search || req.query.cari || '').trim();
+        const status = (req.query.status || '').trim();
+        const tgl_awal = (req.query.tgl_awal || req.query.tgl || '').trim();
+        const tgl_akhir = (req.query.tgl_akhir || '').trim();
+
+        let conditions = [];
+        let params = [];
+
+        if (search) {
+            conditions.push('(tb_broadcast.kode LIKE ? OR tb_broadcast.nama LIKE ? OR tb_broadcast.isi LIKE ?)');
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        }
+
+        if (status && status !== 'semua' && status !== 'all') {
+            conditions.push('tb_broadcast.status = ?');
+            params.push(status);
+        }
+
+        if (tgl_awal && tgl_akhir) {
+            conditions.push('tb_broadcast.tgl_kirim BETWEEN ? AND ?');
+            params.push(tgl_awal, tgl_akhir);
+        } else if (tgl_awal) {
+            conditions.push('tb_broadcast.tgl_kirim >= ?');
+            params.push(tgl_awal);
+        } else if (tgl_akhir) {
+            conditions.push('tb_broadcast.tgl_kirim <= ?');
+            params.push(tgl_akhir);
+        }
+
+        const whereSql = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
+
+        const countQuery = `SELECT COUNT(*) AS total FROM tb_broadcast ${whereSql}`;
+        connection.query(countQuery, params, function (error, countResult) {
             if (error) {
                 console.error('[BROADCAST COUNT ERROR]', error);
                 req.flash('infoerror', 'Gagal memuat data broadcast');
-                return res.redirect('/dashboard');
+                return res.redirect('/home');
             }
 
             const total_data = countResult[0] ? countResult[0].total : 0;
@@ -266,14 +297,22 @@ app.get('/', function (req, res) {
             }
 
             const offset = (page - 1) * limit;
-            const prodsQueryPagin = "SELECT tb_broadcast.*, tb_users.nama AS namauser FROM tb_broadcast LEFT JOIN tb_users ON tb_users.id = tb_broadcast.id_user ORDER BY tb_broadcast.id DESC LIMIT ? OFFSET ?";
+            const prodsQueryPagin = `SELECT tb_broadcast.*, tb_users.nama AS namauser FROM tb_broadcast LEFT JOIN tb_users ON tb_users.id = tb_broadcast.id_user ${whereSql} ORDER BY tb_broadcast.id DESC LIMIT ? OFFSET ?`;
             
-            connection.query(prodsQueryPagin, [limit, offset], function (er, rows) {
+            connection.query(prodsQueryPagin, [...params, limit, offset], function (er, rows) {
                 if (er) {
                     console.error('[BROADCAST DATA ERROR]', er);
                     req.flash('infoerror', 'Gagal memuat data broadcast');
-                    return res.redirect('/dashboard');
+                    return res.redirect('/home');
                 }
+
+                // Query string builder untuk pagination link
+                const qParams = new URLSearchParams();
+                if (search) qParams.set('search', search);
+                if (status) qParams.set('status', status);
+                if (tgl_awal) qParams.set('tgl_awal', tgl_awal);
+                if (tgl_akhir) qParams.set('tgl_akhir', tgl_akhir);
+                const queryString = qParams.toString() ? '&' + qParams.toString() : '';
 
                 var jsonResult = {
                     'total_data': total_data,
@@ -282,7 +321,14 @@ app.get('/', function (req, res) {
                     'products_page_count': total_pages,
                     'total_pages': total_pages,
                     'page_number': page,
-                    'products': rows || []
+                    'products': rows || [],
+                    'filter': {
+                        'search': search,
+                        'status': status,
+                        'tgl_awal': tgl_awal,
+                        'tgl_akhir': tgl_akhir
+                    },
+                    'queryString': queryString
                 };
                 res.render('broadcast', jsonResult);
             });
@@ -540,17 +586,8 @@ function padLeadingZeros(num, size) {
 //-----------------------------------------------------------------------------------------------
 app.get('/search', function (req, res) {
     if (req.session.loggedin) {
-        var cari = req.query.search || '';
-        var prodsQuery = "SELECT tb_broadcast.*, tb_users.nama AS namauser FROM tb_broadcast LEFT JOIN tb_users ON tb_users.id = tb_broadcast.id_user WHERE tb_broadcast.kode LIKE ? OR tb_broadcast.nama LIKE ? ORDER BY tb_broadcast.id DESC";
-        var searchPattern = '%' + cari + '%';
-        connection.query(prodsQuery, [searchPattern, searchPattern], function (error, results) {
-            if (error) {
-                console.error('[BROADCAST SEARCH ERROR]', error);
-                req.flash('infoerror', 'Gagal mencari data broadcast');
-                return res.redirect('/broadcast');
-            }
-            return res.render('broadcast_search', { 'data': results || [], 'pencarian': cari });
-        });
+        var cari = (req.query.search || req.query.cari || '').trim();
+        return res.redirect('/broadcast' + (cari ? '?search=' + encodeURIComponent(cari) : ''));
 	} else {
 		req.flash('infoerror', 'Maaf, Anda harus login');
 		return res.redirect('/');

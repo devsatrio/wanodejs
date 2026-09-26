@@ -31,7 +31,12 @@ app.get('/', function (req, res) {
 //-----------------------------------------------------------------
 app.get('/device', function (req, res) {
     if (req.session.loggedin) {
-        return res.render('device');
+        if (req.session.level === 'Super Admin') {
+            return res.render('device');
+        } else {
+            req.flash('infoerror', 'Akses ditolak. Menu Hubungkan hanya dapat diakses oleh Super Admin.');
+            return res.redirect('/home');
+        }
 	} else {
         req.flash('infoerror', 'Maaf, Anda harus login');
 		return res.redirect('/');

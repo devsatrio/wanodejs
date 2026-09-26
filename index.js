@@ -255,7 +255,12 @@ app.get('/logout', function (req, res) {
 //-----------------------------------------------------------------
 app.get('/device', function (req, res) {
 	if (req.session.loggedin) {
-		return res.render('device');
+		if (req.session.level === 'Super Admin') {
+			return res.render('device');
+		} else {
+			req.flash('infoerror', 'Akses ditolak. Menu Hubungkan hanya dapat diakses oleh Super Admin.');
+			return res.redirect('/home');
+		}
 	} else {
 		req.flash('infoerror', 'Maaf, Anda harus login');
 		return res.redirect('/');
@@ -274,6 +279,10 @@ app.get('/wa/status-qr', function (req, res) {
 // Dedicated Reload / Refresh QR Endpoint
 app.post('/wa/reload-qr', async function (req, res) {
 	try {
+		if (!req.session.loggedin || req.session.level !== 'Super Admin') {
+			return res.status(403).json({ success: false, error: 'Akses ditolak. Hanya Super Admin yang dapat me-reload QR.' });
+		}
+
 		const force = req.body.force === true || req.body.force === 'true';
 		console.log('[WA RELOAD QR TRIGGERED]', { force, isClientReady });
 		
@@ -305,6 +314,10 @@ app.post('/wa/reload-qr', async function (req, res) {
 // Logout Sesi WhatsApp untuk Ganti Nomor
 app.post('/wa/logout-session', async function (req, res) {
 	try {
+		if (!req.session.loggedin || req.session.level !== 'Super Admin') {
+			return res.status(403).json({ success: false, error: 'Akses ditolak. Hanya Super Admin yang dapat mengganti nomor.' });
+		}
+
 		console.log('[WA LOGOUT SESSION TRIGGERED]');
 		isClientReady = false;
 		currentQr = '';

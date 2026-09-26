@@ -33,9 +33,11 @@
                                 </p>
                             </div>
                             <div class="col-md-4 text-md-right mt-3 mt-md-0">
-                                <a href="/device" class="btn btn-light text-primary font-weight-bold shadow-sm mr-1 mb-1">
-                                    <i class="fas fa-qrcode text-success mr-1"></i> Hubungkan
-                                </a>
+                                <% if (level === 'Super Admin') { %>
+                                    <a href="/device" class="btn btn-light text-primary font-weight-bold shadow-sm mr-1 mb-1">
+                                        <i class="fas fa-qrcode text-success mr-1"></i> Hubungkan
+                                    </a>
+                                <% } %>
                                 <a href="/broadcast/tambah" class="btn btn-success font-weight-bold shadow-sm mb-1">
                                     <i class="fas fa-paper-plane mr-1"></i> Kirim Broadcast
                                 </a>
@@ -150,12 +152,22 @@
                             </div>
                             <div class="d-flex align-items-center justify-content-between flex-wrap pt-2">
                                 <p class="text-muted small mb-2 mb-md-0" style="max-width: 65%;">
-                                    Untuk menghubungkan nomor pengirim, scan QR code, atau mengganti nomor, silakan kunjungi menu Hubungkan.
+                                    <% if (level === 'Super Admin') { %>
+                                        Untuk menghubungkan nomor pengirim, scan QR code, atau mengganti nomor, silakan kunjungi menu Hubungkan.
+                                    <% } else { %>
+                                        Status koneksi engine pengiriman WhatsApp. Pengaturan nomor dan scan QR dikelola oleh Super Admin.
+                                    <% } %>
                                 </p>
                                 <div>
-                                    <a href="/device" class="btn btn-success font-weight-bold shadow-sm mr-1">
-                                        <i class="fas fa-qrcode mr-1"></i> Hubungkan Perangkat
-                                    </a>
+                                    <% if (level === 'Super Admin') { %>
+                                        <a href="/device" class="btn btn-success font-weight-bold shadow-sm mr-1">
+                                            <i class="fas fa-qrcode mr-1"></i> Hubungkan Perangkat
+                                        </a>
+                                    <% } else { %>
+                                        <span class="badge badge-light text-muted p-2 font-weight-normal border">
+                                            <i class="fas fa-shield-alt mr-1 text-success"></i> Dikelola Super Admin
+                                        </span>
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +183,7 @@
                         </div>
                         <div class="card-body p-4">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="<%= (level === 'Super Admin') ? 'col-md-4' : 'col-md-6' %> mb-3">
                                     <div class="border rounded p-3 h-100 bg-light text-center transition-hover">
                                         <div class="text-success mb-2">
                                             <i class="fas fa-paper-plane fa-2x"></i>
@@ -181,7 +193,7 @@
                                         <a href="/broadcast/tambah" class="btn btn-sm btn-outline-success font-weight-bold btn-block">Buat Pesan</a>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="<%= (level === 'Super Admin') ? 'col-md-4' : 'col-md-6' %> mb-3">
                                     <div class="border rounded p-3 h-100 bg-light text-center transition-hover">
                                         <div class="text-primary mb-2">
                                             <i class="fas fa-address-book fa-2x"></i>
@@ -191,16 +203,18 @@
                                         <a href="/contact" class="btn btn-sm btn-outline-primary font-weight-bold btn-block">Kelola Kontak</a>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="border rounded p-3 h-100 bg-light text-center transition-hover">
-                                        <div class="text-info mb-2">
-                                            <i class="fas fa-qrcode fa-2x"></i>
+                                <% if (level === 'Super Admin') { %>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="border rounded p-3 h-100 bg-light text-center transition-hover">
+                                            <div class="text-info mb-2">
+                                                <i class="fas fa-qrcode fa-2x"></i>
+                                            </div>
+                                            <h6 class="font-weight-bold text-dark mb-1">Hubungkan</h6>
+                                            <p class="text-muted small mb-2">Scan QR Code, ganti nomor pengirim, dan pantau kesehatan sesi penautan.</p>
+                                            <a href="/device" class="btn btn-sm btn-outline-info font-weight-bold btn-block">Hubungkan</a>
                                         </div>
-                                        <h6 class="font-weight-bold text-dark mb-1">Hubungkan</h6>
-                                        <p class="text-muted small mb-2">Scan QR Code, ganti nomor pengirim, dan pantau kesehatan sesi penautan.</p>
-                                        <a href="/device" class="btn btn-sm btn-outline-info font-weight-bold btn-block">Hubungkan</a>
                                     </div>
-                                </div>
+                                <% } %>
                             </div>
                         </div>
                     </div>
