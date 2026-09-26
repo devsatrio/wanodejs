@@ -22,36 +22,9 @@ app.use('/users',user)
 app.use('/contact',contact)
 //-----------------------------------------------------------------
 app.use('/wa',wabroadcast)
-app.get('/generate-newapi',function(req,res){
-	io.on('connection',function(socket){
-		// socket.emit("message",'Connecting');
-		
-		client.on('qr',(qr)=>{
-			console.log('QR RECEIVED');
-			// qrcode.generate(qr);
-			qrcode.toDataURL(qr,(err,url)=>{
-				socket.emit('qr',url);
-				socket.emit('msg','QRCode received');
-			})
-		})
-		
-		client.on('ready',()=>{
-			console.log('Client Ready');
-			socket.emit('msg','Whatsapp Ready!');
-			socket.emit('qr','/static/img/img.jpg');
-			sessioncfg=session;
-		})
-		client.on('authenticated',(session)=>{
-			console.log('authenticated');
-			sessioncfg=session;
-			fs.writeFile(SESSION_FILE_PATH,JSON.stringify(session),function(err){
-				if(err){
-					console.error(err);	
-				}
-			})
-		})
-	});
-})
+app.get('/generate-newapi', function (req, res) {
+	res.json({ message: 'WhatsApp Engine is running' });
+});
 server.listen(8000, function () {
     console.log('Listening to Port 8000');
   });

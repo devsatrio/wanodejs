@@ -3,13 +3,14 @@ const {connection}=require('./config/db');
 // const wasend=require('./sendwhatsapp');
 const socketIO=require('socket.io');
 var bcrypt = require('bcrypt');
-const{Client,NoAuth } =require('whatsapp-web.js');
-const qrcode=require('qrcode');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode');
+const qrcodeTerminal = require('qrcode-terminal');
 require('events').EventEmitter.defaultMaxListeners = 100;
 
 function add(x, y) {
 	return x + y;
-  }
+}
   
 //--------------------------------------------------------------------
 var express = require('express');
@@ -17,61 +18,117 @@ var mysql = require('mysql');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 var app = express();
-const server=http.createServer(app);
-const io=socketIO(server);
+const server = http.createServer(app);
+const io = socketIO(server);
 
 var flash = require('express-flash');
 
 // ------------------------------------------------------------------
-const fs=require('fs');
+const fs = require('fs');
 const { response } = require('express');
 
-const SESSION_FILE_PATH='./wa-session.json';
+const SESSION_FILE_PATH = './wa-session.json';
 let sessioncfg;
 if(fs.existsSync(SESSION_FILE_PATH)){
-	sessioncfg=require(SESSION_FILE_PATH);
+	sessioncfg = require(SESSION_FILE_PATH);
 }
 
-// socket io
-const client=new Client({ authStrategy: new NoAuth(),puppeteer:{headless:true},restartOnAuthFail: true});
-io.on('connection',function(socket){
-	// socket.emit("message",'Connecting');	
-	client.on('qr',(qr)=>{
-		console.log('QR RECEIVED');
-		// qrcode.generate(qr);
-		qrcode.toDataURL(qr,(err,url)=>{
-			socket.emit('qr',url);
-			socket.emit('msg','QRCode received');
-		})
-	})
-	
-	client.on('ready',()=>{
-		console.log('Client Ready');
-		socket.emit('msg','Whatsapp Ready!');
-		socket.emit('qr','/static/img/img.jpg');
-		sessioncfg=session;
-	})
-	client.on('authenticated',(session)=>{
-		console.log('authenticated');
-		sessioncfg=session;
-		// fs.writeFile(SESSION_FILE_PATH,JSON.stringify(session),function(err){
-		// 	if(err){
-		// 		console.error(err);	
-		// 	}
-		// })
-	})
+// Global state for WhatsApp
+let currentQr = '';
+let currentStatus = 'Sedang menginisialisasi WhatsApp Web...';
+let isClientReady = false;
 
-	client.on('disconnected', (reason) => {
-		// Destroy and reinitialize the client when disconnected
-		client.destroy();
-		client.initialize();
-	});
+// Initialize WhatsApp Web Client
+const client = new Client({
+    authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
+    puppeteer: {
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
+    },
+    restartOnAuthFail: true
 });
-client.on('message',msg=>{
-	if(msg.body=="!ping"){
-		msg.reply("pong");
-	}
-})
+
+client.on('qr', (qr) => {
+    console.log('=== QR CODE RECEIVED (Scan via WhatsApp) ===');
+    try {
+        qrcodeTerminal.generate(qr, { small: true });
+    } catch (e) {}
+    qrcode.toDataURL(qr, (err, url) => {
+        if (!err) {
+            currentQr = url;
+            currentStatus = 'QR Code diterima. Silakan scan melalui WhatsApp!';
+            isClientReady = false;
+            io.emit('qr', currentQr);
+            io.emit('msg', currentStatus);
+        }
+    });
+});
+
+client.on('ready', () => {
+    console.log('=== WhatsApp Client Ready & Terhubung! ===');
+    isClientReady = true;
+    currentQr = '/static/img/img.jpg';
+    currentStatus = 'WhatsApp Ready & Terhubung!';
+    io.emit('msg', currentStatus);
+    io.emit('qr', currentQr);
+});
+
+client.on('authenticated', () => {
+    console.log('WhatsApp Authenticated!');
+    currentStatus = 'Autentikasi Berhasil! Memuat obrolan...';
+    io.emit('msg', currentStatus);
+});
+
+client.on('auth_failure', (msg) => {
+    console.error('WhatsApp Authentication Failure:', msg);
+    isClientReady = false;
+    currentStatus = 'Autentikasi Gagal: ' + msg;
+    io.emit('msg', currentStatus);
+});
+
+client.on('loading_screen', (percent, message) => {
+    console.log('WhatsApp Loading:', percent, message);
+    currentStatus = 'Loading WhatsApp (' + percent + '%): ' + message;
+    io.emit('msg', currentStatus);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('WhatsApp Disconnected:', reason);
+    isClientReady = false;
+    currentQr = '';
+    currentStatus = 'WhatsApp Terputus: ' + reason + '. Menghubungkan ulang...';
+    io.emit('msg', currentStatus);
+    client.destroy();
+    client.initialize();
+});
+
+io.on('connection', function(socket) {
+    console.log('Browser connected to Socket.IO (ID: ' + socket.id + ')');
+    if (isClientReady) {
+        socket.emit('msg', 'WhatsApp Ready & Terhubung!');
+        socket.emit('qr', '/static/img/img.jpg');
+    } else if (currentQr) {
+        socket.emit('qr', currentQr);
+        socket.emit('msg', currentStatus);
+    } else {
+        socket.emit('msg', currentStatus);
+    }
+});
+
+client.on('message', msg => {
+    if (msg.body == "!ping") {
+        msg.reply("pong");
+    }
+});
+
 client.initialize();
 
 

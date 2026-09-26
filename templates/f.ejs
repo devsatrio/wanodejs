@@ -41,10 +41,65 @@
 <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
 <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 <script src="/static/vendor/select2/select2.min.js"></script>
-
+<script src="/static/vendor/socket.io/socket.io.min.js"></script>
 
 <script>
+    function closeBroadcastProgress() {
+        $('#globalBroadcastAlert').slideUp();
+        sessionStorage.setItem('dismissed_broadcast', 'true');
+        $.post('/broadcast/dismiss-progress');
+    }
+
+    function updateGlobalBroadcastUI(data) {
+        if (!data) return;
+        if (data.running) {
+            sessionStorage.removeItem('dismissed_broadcast');
+        }
+        if (!data.running && data.percentage === 100 && sessionStorage.getItem('dismissed_broadcast') === 'true') {
+            return;
+        }
+        if (data.running || (data.percentage > 0 && data.percentage < 100)) {
+            $('#globalBroadcastAlert').slideDown();
+            $('#globalProgressKode').text(data.kode || '-');
+            $('#globalProgressPercent').text(data.percentage + '%');
+            $('#globalProgressBar').css('width', data.percentage + '%').text(data.percentage + '%');
+            $('#globalProgressCount').text((data.current || 0) + '/' + (data.total || 0));
+            $('#globalProgressSuccess').text((data.successCount || 0) + ' Terkirim');
+            $('#globalProgressFailed').text((data.failedCount || 0) + ' Gagal');
+            if (data.statusText) {
+                $('#globalProgressStatusText').html(data.statusText);
+            }
+        } else if (data.percentage === 100 && !data.running) {
+            if (sessionStorage.getItem('dismissed_broadcast') !== 'true') {
+                $('#globalBroadcastAlert').slideDown();
+                $('#globalProgressStatusText').html(data.statusText || '🎉 Selesai!');
+                $('#globalProgressBar').css('width', '100%').text('100%');
+                setTimeout(function() {
+                    $('#globalBroadcastAlert').slideUp();
+                }, 8000);
+            }
+        }
+    }
+
     $(document).ready(function () {
+        var socket = io();
+        socket.on('broadcast-progress', function (data) {
+            updateGlobalBroadcastUI(data);
+        });
+
+        socket.on('broadcast-dismissed', function () {
+            $('#globalBroadcastAlert').slideUp();
+        });
+
+        $.ajax({
+            type: 'GET',
+            url: '/broadcast/active-progress',
+            success: function (data) {
+                if (data && (data.running || (data.percentage > 0 && data.percentage < 100 && sessionStorage.getItem('dismissed_broadcast') !== 'true'))) {
+                    updateGlobalBroadcastUI(data);
+                }
+            }
+        });
         // -------------------------------------------------------
        
         // -------------------------------------------------------

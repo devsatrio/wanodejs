@@ -30,19 +30,77 @@
 <script src="/static/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
 <script src="/static/vendor/socket.io/socket.io.min.js"></script>
 <script>
+    function closeBroadcastProgress() {
+        $('#globalBroadcastAlert').slideUp();
+        sessionStorage.setItem('dismissed_broadcast', 'true');
+        $.post('/broadcast/dismiss-progress');
+    }
+
     function getWaCon() {
-        var socket=io('http://localhost:8000');
-        socket.on('msg',function(msg){
-            $('.logs').html(msg)
+        var socket = io();
+        socket.on('connect', function() {
+            console.log('Connected to WebSocket server');
         });
-        socket.on('qr',function(src){
-            $('#imgqr').attr('src',src);
+        socket.on('msg', function(msg) {
+            $('.logs').html('<div class="alert alert-info mt-3 d-inline-block py-2 px-3">' + msg + '</div>');
+        });
+        socket.on('qr', function(src) {
+            if (src) {
+                $('#imgqr').attr('src', src).show();
+            }
+        });
+        socket.on('broadcast-progress', function (data) {
+            if (!data) return;
+            if (data.running) {
+                sessionStorage.removeItem('dismissed_broadcast');
+            }
+            if (!data.running && data.percentage === 100 && sessionStorage.getItem('dismissed_broadcast') === 'true') {
+                return;
+            }
+            if (data.running || (data.percentage > 0 && data.percentage < 100)) {
+                $('#globalBroadcastAlert').slideDown();
+                $('#globalProgressKode').text(data.kode || '-');
+                $('#globalProgressPercent').text(data.percentage + '%');
+                $('#globalProgressBar').css('width', data.percentage + '%').text(data.percentage + '%');
+                $('#globalProgressCount').text((data.current || 0) + '/' + (data.total || 0));
+                $('#globalProgressSuccess').text((data.successCount || 0) + ' Terkirim');
+                $('#globalProgressFailed').text((data.failedCount || 0) + ' Gagal');
+                if (data.statusText) {
+                    $('#globalProgressStatusText').html(data.statusText);
+                }
+            } else if (data && data.percentage === 100 && !data.running) {
+                if (sessionStorage.getItem('dismissed_broadcast') !== 'true') {
+                    $('#globalBroadcastAlert').slideDown();
+                    $('#globalProgressStatusText').html(data.statusText || '🎉 Selesai!');
+                    $('#globalProgressBar').css('width', '100%').text('100%');
+                    setTimeout(function() {
+                        $('#globalBroadcastAlert').slideUp();
+                    }, 8000);
+                }
+            }
+        });
+        socket.on('broadcast-dismissed', function () {
+            $('#globalBroadcastAlert').slideUp();
         });
     }
-    var jumlahpenerima=0;
+    var jumlahpenerima = 0;
     $(document).ready(function () {
        getWaCon();
-        // getWaCon();
+        $.ajax({
+            type: 'GET',
+            url: '/broadcast/active-progress',
+            success: function (data) {
+                if (data && (data.running || (data.percentage > 0 && data.percentage < 100 && sessionStorage.getItem('dismissed_broadcast') !== 'true'))) {
+                    $('#globalBroadcastAlert').slideDown();
+                    $('#globalProgressKode').text(data.kode || '-');
+                    $('#globalProgressPercent').text(data.percentage + '%');
+                    $('#globalProgressBar').css('width', data.percentage + '%').text(data.percentage + '%');
+                    $('#globalProgressCount').text((data.current || 0) + '/' + (data.total || 0));
+                    $('#globalProgressSuccess').text((data.successCount || 0) + ' Terkirim');
+                    $('#globalProgressFailed').text((data.failedCount || 0) + ' Gagal');
+                }
+            }
+        });
         $.ajax({
             type: 'GET',
             url: '/home/getdata',

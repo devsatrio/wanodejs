@@ -32,9 +32,118 @@
 <script src="/static/js/sb-admin-2.min.js"></script>
 <script src="/static/vendor/select2/select2.min.js"></script>
 <script src="/static/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/vendor/socket.io/socket.io.min.js"></script>
 <script>
-    var jumlahpenerima=0;
+    var jumlahpenerima = 0;
+
+    function closeBroadcastProgress() {
+        $('#liveProgressContainer').slideUp();
+        $('#globalBroadcastAlert').slideUp();
+        sessionStorage.setItem('dismissed_broadcast', 'true');
+        $.post('/broadcast/dismiss-progress');
+    }
+
+    function updateProgressUI(data) {
+        if (!data) return;
+
+        // If a new broadcast is running, clear any dismissed state
+        if (data.running) {
+            sessionStorage.removeItem('dismissed_broadcast');
+        }
+
+        // If broadcast is completed and user dismissed it or state reset, don't show
+        if (!data.running && data.percentage === 100 && sessionStorage.getItem('dismissed_broadcast') === 'true') {
+            return;
+        }
+
+        if (!data.running && (data.percentage === 0 || !data.kode)) {
+            $('#globalBroadcastAlert').slideUp();
+            $('#liveProgressContainer').slideUp();
+            return;
+        }
+        
+        // 1. Update Global Navbar Banner
+        if (data.running || (data.percentage > 0 && data.percentage < 100)) {
+            $('#globalBroadcastAlert').slideDown();
+            $('#globalProgressKode').text(data.kode || '-');
+            $('#globalProgressPercent').text(data.percentage + '%');
+            $('#globalProgressBar').css('width', data.percentage + '%').text(data.percentage + '%');
+            $('#globalProgressCount').text((data.current || 0) + '/' + (data.total || 0));
+            $('#globalProgressSuccess').text((data.successCount || 0) + ' Terkirim');
+            $('#globalProgressFailed').text((data.failedCount || 0) + ' Gagal');
+            if (data.statusText) {
+                $('#globalProgressStatusText').html(data.statusText);
+            }
+        } else if (data.percentage === 100 && !data.running) {
+            $('#globalProgressStatusText').html(data.statusText || '🎉 Selesai!');
+            $('#globalProgressBar').css('width', '100%').text('100%');
+            setTimeout(function() {
+                $('#globalBroadcastAlert').slideUp();
+            }, 8000);
+        }
+
+        // 2. Update Local Detail Card (Broadcast Page)
+        if (data.running || (data.percentage > 0 && sessionStorage.getItem('dismissed_broadcast') !== 'true')) {
+            $('#liveProgressContainer').slideDown();
+            $('#progressKode').text(data.kode || '-');
+            $('#progressBar').css('width', data.percentage + '%').text(data.percentage + '%');
+            $('#progressTotal').text(data.total || 0);
+            $('#progressSuccess').text(data.successCount || 0);
+            $('#progressFailed').text(data.failedCount || 0);
+            var remaining = Math.max(0, (data.total || 0) - (data.current || 0));
+            $('#progressRemaining').text(remaining);
+            
+            if (data.logs && data.logs.length > 0) {
+                var logHtml = '';
+                $.each(data.logs, function(idx, item) {
+                    logHtml += '<div class="py-1 border-bottom border-secondary">' + item + '</div>';
+                });
+                $('#progressLogsList').html(logHtml);
+            }
+
+            if (!data.running && data.percentage === 100) {
+                // Tampilan State Selesai (Tetap Tampil / Tidak di-hidden sampai di-close)
+                $('#progressCardHeader').removeClass('bg-primary').addClass('bg-success');
+                $('#progressHeaderTitle').html('<i class="fas fa-check-circle mr-2"></i> Broadcast Selesai: <span id="progressKode" class="badge badge-light ml-1 font-weight-bold">' + (data.kode || '-') + '</span>');
+                $('#progressPercentBadge').removeClass('badge-light text-dark').addClass('badge-light text-success font-weight-bold').html('🎉 Selesai 100%');
+                $('#progressBar').removeClass('progress-bar-striped progress-bar-animated bg-primary').addClass('bg-success').css('width', '100%').text('100%');
+                $('#progressStatusText').removeClass('alert-secondary').addClass('alert-success text-success').html('<i class="fas fa-check-circle mr-2"></i> ' + (data.statusText || 'Pengiriman broadcast telah selesai seluruhnya!'));
+            } else {
+                // Tampilan State Berjalan
+                $('#progressCardHeader').removeClass('bg-success').addClass('bg-primary');
+                $('#progressHeaderTitle').html('<i class="fas fa-satellite-dish fa-spin mr-2"></i> Real-time Progress Broadcast: <span id="progressKode" class="badge badge-light ml-1 font-weight-bold">' + (data.kode || '-') + '</span>');
+                $('#progressPercentBadge').text(data.percentage + '%');
+                $('#progressBar').addClass('progress-bar-striped progress-bar-animated bg-success');
+                if (data.statusText) {
+                    $('#progressStatusText').removeClass('alert-success text-success').addClass('alert-secondary text-dark').html(data.statusText);
+                }
+            }
+        }
+    }
+
     $(document).ready(function () {
+        // Socket.IO realtime connection
+        var socket = io();
+        socket.on('broadcast-progress', function (data) {
+            updateProgressUI(data);
+        });
+
+        socket.on('broadcast-dismissed', function () {
+            $('#liveProgressContainer').slideUp();
+            $('#globalBroadcastAlert').slideUp();
+        });
+
+        // Check if there is an active/completed broadcast in memory
+        $.ajax({
+            type: 'GET',
+            url: '/broadcast/active-progress',
+            success: function (data) {
+                if (data && (data.running || (data.percentage > 0 && sessionStorage.getItem('dismissed_broadcast') !== 'true'))) {
+                    updateProgressUI(data);
+                }
+            }
+        });
+
         $('#tgl_broadcast').datepicker({
             format: 'yyyy-mm-dd',
         });
@@ -46,7 +155,9 @@
         $("#kirimsekarang").click(function (e) {
             if($('#nama_broadcast').val()=='' || $('#tgl_broadcast').val()=='' || $('#isi_broadcast').val()==''){
                 alert('Data tidak boleh kosong');
-            }else{
+            } else {
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
                 $.ajax({
                     type: 'POST',
                     url: '/broadcast/kirim',
@@ -54,14 +165,16 @@
                         'kode': $("#kode_broadcast").val(),
                         'nama': $("#nama_broadcast").val(),
                         'tgl': $("#tgl_broadcast").val(),
-                        'aksi':$("#aksi option:selected").val(),
+                        'aksi': $("#aksi option:selected").val(),
                         'deskripsi': $("#isi_broadcast").val(),
                     },
                     success: function () {
-                        location.replace("/broadcast");
-                    }, complete: function () {
-                        location.replace("/broadcast");
-                     }
+                        window.location.href = "/broadcast";
+                    },
+                    error: function (xhr) {
+                        alert('Gagal menyimpan broadcast: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Terjadi kesalahan server'));
+                        $btn.prop('disabled', false).html('Simpan');
+                    }
                 });
             }
         });
@@ -70,7 +183,9 @@
         $("#updatebtn").click(function (e) {
             if($('#nama_broadcast').val()=='' || $('#tgl_broadcast').val()=='' || $('#isi_broadcast').val()==''){
                 alert('Data tidak boleh kosong');
-            }else{
+            } else {
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengupdate...');
                 $.ajax({
                     type: 'POST',
                     url: '/broadcast/update',
@@ -78,14 +193,16 @@
                         'kode': $("#kode_broadcast").val(),
                         'nama': $("#nama_broadcast").val(),
                         'tgl': $("#tgl_broadcast").val(),
-                        'aksi':$("#aksi option:selected").val(),
+                        'aksi': $("#aksi option:selected").val(),
                         'deskripsi': $("#isi_broadcast").val(),
                     },
                     success: function () {
-                        location.replace("/broadcast");
-                    }, complete: function () {
-                        location.replace("/broadcast");
-                     }
+                        window.location.href = "/broadcast";
+                    },
+                    error: function (xhr) {
+                        alert('Gagal mengupdate broadcast: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Terjadi kesalahan server'));
+                        $btn.prop('disabled', false).html('Simpan');
+                    }
                 });
             }
         });
